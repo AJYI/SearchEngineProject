@@ -92,7 +92,7 @@ class Index:
         :return: True if the word is found in the stop word set / False if the word is not found in the stop word set
         """
 
-        # We initailize self.stop_words so we don't create it over and over again
+        # We initailize self.stop_words so we don't create it over and over again :)
         if word in self.stop_words:
             return True
         else:
