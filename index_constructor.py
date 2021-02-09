@@ -1,5 +1,6 @@
 from nltk.corpus import stopwords
 from textblob import Word
+from textblob import TextBlob
 from bs4 import BeautifulSoup
 from collections import Counter
 
@@ -36,7 +37,7 @@ class Index:
 
                     # The good case, when all following conditions have been met
                     else:
-                        processed_list.append(word)
+                        processed_list.append(lem_word)
 
             except:
                 # If an exception occurs, we will just go to the next iteration
@@ -80,7 +81,7 @@ class Index:
 
             # The good case, when all following conditions have been met
             else:
-                processed_list.append(processed_word)
+                processed_list.append(lem_word)
         return processed_list
 
 
@@ -104,7 +105,7 @@ class Index:
         :param word
         :returns the lemmatized word
         """
-        w = Word(word)
+        w = Word(word.lower())
         return w.lemmatize()
 
     
