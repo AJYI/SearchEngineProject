@@ -138,7 +138,6 @@ class Index:
         return count_dict
 
 
-
     #An implementation idea of how the function will progress
 
     """
