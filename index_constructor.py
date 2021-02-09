@@ -29,7 +29,7 @@ class Index:
                 # Condition to lemmatize and remove stopwords
                 else:
                     # Lemmatizing the word
-                    lem_word = self.lemmatize(word) 
+                    lem_word = self.lemmatize(word)
 
                     # If lem_word is found in the removeStopWords function, then we pass
                     if self.removeStopWord(lem_word):
