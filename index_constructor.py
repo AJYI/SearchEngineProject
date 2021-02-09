@@ -1,13 +1,15 @@
 from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer 
+from textblob import Word
 from bs4 import BeautifulSoup
+from collections import Counter
 
 class Index:
     """
     This class is responsible for building inverted index
     """
 
-#    def __init__(self):
+    def __init__(self):
+        self.stop_words = set(stopwords.words('english'))
 
     def tokenize(self, unprocessed_list):
         """
@@ -16,44 +18,84 @@ class Index:
         """
         processed_list = []
 
-        # Removed all the stop words within the unprocessed_list
-        unprocessed_list = self.removeStopWords(unprocessed_list)
-
         for word in unprocessed_list:
-            try:    
+            try:
+                # When a word is not alphanum or is ascii
+                if not word.isalnum() or not word.isascii():
+                    # This function call will return a list
+                    processed_list.extend(self.tokenizeWordWithBadCharacters(word))
 
+                # Condition to lemmatize and remove stopwords
+                else:
+                    # Lemmatizing the word
+                    lem_word = self.lemmatize(word) 
 
+                    # If lem_word is found in the removeStopWords function, then we pass
+                    if self.removeStopWord(lem_word):
+                        pass
 
+                    # The good case, when all following conditions have been met
+                    else:
+                        processed_list.append(word)
 
-                pass
             except:
                 # If an exception occurs, we will just go to the next iteration
                 pass
 
         return processed_list
+    
+
+    # Check for bugs incase
+    def tokenizeWordWithBadCharacters(self, word):
+        """
+        A helper function of tokenize
+        :param word = a word with bad characters that need to be processed
+        :return: after the word with bad characters have been processed, it will a list
+        """
+
+        # From here we are going to check every character of the word to see if we can fix it up
+        processed_text = ''
+
+        for i in range(len(word)):
+            try:
+                if not word[i].isalnum() or not word[i].isascii():
+                    processed_text += ' '
+                else:
+                    processed_text += word[i].lower()
+            except:
+                # If for some reason, an error occurs
+                processed_text += ' '
+
+        # After the if condtion, processed_text is completed and made
+        # We now need to lemmatize and remove stop words
+        processed_list = []
+
+        for processed_word in processed_text.split():
+            # Lemmatizing the word
+            lem_word = self.lemmatize(processed_word) 
+
+            # If lem_word is found in the removeStopWords function, then we pass
+            if self.removeStopWord(lem_word):
+                pass
+
+            # The good case, when all following conditions have been met
+            else:
+                processed_list.append(processed_word)
+        return processed_list
 
 
-    def removeStopWords(self, word_list):
+    def removeStopWord(self, word):
         """
         Helper function for tokenize
-        :param word_list = a list of words that will be checked on for stop words
-        :return: a new list of words that have stop words excluded
+        :param word
+        :return: True if the word is found in the stop word set / False if the word is not found in the stop word set
         """
-        stop_words = set(stopwords.words('english'))
 
-        no_stop_words_list = []
-
-        # Iterates through all the words in the wordlist
-        # Then checks if the word is in the stop list. 
-        # If it is, do nothing
-        # If not, then append to no_stop_word_list
-
-        for word in word_list:
-            if word in stop_words:
-                pass
-            no_stop_words_list.append(word)
-        
-        return no_stop_words_list
+        # We initailize self.stop_words so we don't create it over and over again
+        if word in self.stop_words:
+            return True
+        else:
+            return False
 
 
     def lemmatize(self, word):
@@ -62,7 +104,8 @@ class Index:
         :param word
         :returns the lemmatized word
         """
-        return WordNetLemmatizer().lemmatize(word)
+        w = Word(word)
+        return w.lemmatize()
 
     
     def htmlConvert(self, html_file):
@@ -83,3 +126,26 @@ class Index:
         """
         unprocessed_list = list(url_data.getText().lower().split())
         return unprocessed_list
+
+
+    def computeWordFrequencies(self, tokenized_list):
+        """
+        Purpose: counts the number of occurrences of each token in the token list (List<Token> tokens).
+        Return: a dictionary of counted words
+        """
+        count_dict = Counter(tokenized_list)
+        return count_dict
+
+
+
+    #An implementation idea of how the function will progress
+
+    """
+    Will be in order
+    some arguement parameter for html file
+    url_data = htmlConvert(some html File)
+    unprocessed_list = htmlContenetToList(url_data)
+    tokenized_list = tokenize(unprocessed_list)
+    frequency_dict = computeWordFrequencies(tokenized_list)
+
+    """
