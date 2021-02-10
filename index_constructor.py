@@ -1,8 +1,8 @@
-from nltk.corpus import stopwords
 from textblob import Word
 from textblob import TextBlob
 from bs4 import BeautifulSoup
 from collections import Counter
+import enchant
 
 class Index:
     """
@@ -10,13 +10,15 @@ class Index:
     """
 
     def __init__(self):
-        self.stop_words = set(stopwords.words('english'))
+        self.stopSet = set(line.strip() for line in open('stopWords.txt'))
+        pass
 
     def tokenize(self, unprocessed_list):
         """
         :param unprocessed_list: list of tokens that needs verification
         :return: a processed_list = A list of tokenized words
         """
+        d = enchant.Dict("en_US")
         processed_list = []
 
         for word in unprocessed_list:
@@ -24,16 +26,23 @@ class Index:
                 # When a word is not alphanum or is ascii
                 if not word.isalnum() or not word.isascii():
                     # This function call will return a list
-                    processed_list.extend(self.tokenizeWordWithBadCharacters(word))
+                    returned_word = self.tokenizeWordWithBadCharacters(word)
+                    if len(returned_word) == 0:
+                        continue
+                    processed_list.append(returned_word)
 
                 # Condition to lemmatize and remove stopwords
                 else:
+                    # Checking whether the word is a word or not
+                    if d.check(word) is False:
+                        continue
+
                     # Lemmatizing the word
                     lem_word = self.lemmatize(word)
 
                     # If lem_word is found in the removeStopWords function, then we pass
                     if self.removeStopWord(lem_word):
-                        pass
+                        continue
 
                     # The good case, when all following conditions have been met
                     else:
@@ -41,49 +50,110 @@ class Index:
 
             except:
                 # If an exception occurs, we will just go to the next iteration
-                pass
+                continue
 
         return processed_list
     
 
-    # Check for bugs incase
     def tokenizeWordWithBadCharacters(self, word):
         """
         A helper function of tokenize
         :param word = a word with bad characters that need to be processed
         :return: after the word with bad characters have been processed, it will a list
         """
+        s = list(word)
 
-        # From here we are going to check every character of the word to see if we can fix it up
+        # Checking is there is any bad characters within the beginning and the ends of the words
+        if not s[0].isalnum() or not s[0].isascii():
+            s.remove(s[0])
+        if not s[-1].isalnum() or not s[-1].isascii():
+            s.remove(s[-1])
+        processed_word = "".join(s)
+
+        """
+        Will be using two flags
+        If the first flag is true and second flag is false, we pass in the first flag word
+        If the first flag is true and second flag is true, we pass in the second flag word
+        If the first flag is false and second flag is false, return ""
+        If the first flag is false and second flag is true, we pass in the second flag word
+        """
+        outer_flag1 = False
+        outer_flag2 = False
+
+        d = enchant.Dict("en_US")
         processed_text = ''
 
-        for i in range(len(word)):
+        if(d.check(processed_word)):
+            outer_flag1 = True
+        
+        if self.removeStopWord(processed_word):
+            return ""
+
+        for i in range(len(processed_word)):
             try:
-                if not word[i].isalnum() or not word[i].isascii():
-                    processed_text += ' '
+                if not processed_word[i].isalnum() or not processed_word[i].isascii():
+                    processed_text += ''
                 else:
-                    processed_text += word[i].lower()
+                    processed_text += processed_word[i].lower()
             except:
                 # If for some reason, an error occurs
-                processed_text += ' '
+                processed_text += ''
+        
+        # print(f"\n\n\n{processed_text}\n\n\n")
+        # stemmer = PorterStemmer()
 
-        # After the if condtion, processed_text is completed and made
-        # We now need to lemmatize and remove stop words
-        processed_list = []
+        lem_word = self.lemmatize(processed_text)
+        # stem_word = stemmer.stem(processed_text)
 
-        for processed_word in processed_text.split():
-            # Lemmatizing the word
-            lem_word = self.lemmatize(processed_word) 
+        # print(f"\n\n\n{lem_word}\n\n\n")
+        # print(f"\n\n\n{stem_word}\n\n\n")
+        """
+        if flag 1/2 is True/True, better to keep lem_word. Set outer_flag2 to true, and change processed_text = lem_word
+        if flag 1/2 if True/false, better to keep lem_word. Set outer_flag2 to true, and change processed_text = lem_word
+        if flag 1/2 is false/True, keep stem_word. Set outer_flag2 to true, and change processed_text = stem_word
+        if flag 1/2 is false/false, set -> outer2_flag to false
+        Then finally check if it is a stop word
+        """
+        inner_flag1 = False
+        # inner_flag2 = False
+        
+        if d.check(lem_word):
+            inner_flag1 = True
+        # if d.check(stem_word):
+        #     inner_flag2 = True
 
-            # If lem_word is found in the removeStopWords function, then we pass
-            if self.removeStopWord(lem_word):
-                pass
+        if inner_flag1 is True:
+            processed_text = lem_word
+            outer_flag2 = True
+        else:
+            outer_flag2 = False
+        # if inner_flag1 is True and inner_flag2 is True:
+        #     processed_text = lem_word
+        #     outer_flag2 = True
+        # elif inner_flag1 is True and inner_flag2 is False:
+        #     processed_text = lem_word
+        #     outer_flag2 = True
+        # elif inner_flag1 is False and inner_flag2 is True:
+        #     processed_text = stem_word
+        #     outer_flag2 = True
+        # else:
+        #     outer_flag2 = False
+        
+        # Checks whether the word we got is a stop word
+        if self.removeStopWord(processed_text):
+            outer_flag2 = False
 
-            # The good case, when all following conditions have been met
-            else:
-                processed_list.append(lem_word)
-        return processed_list
+        # print(f"text:{processed_text}| word:{processed_word}")
 
+        # Final Check
+        if outer_flag1 is True and outer_flag2 is True:
+            return processed_text
+        if outer_flag1 is True and outer_flag2 is False:
+            return processed_word
+        if outer_flag1 is False and outer_flag2 is True:
+            return processed_text
+        
+        return ""
 
     def removeStopWord(self, word):
         """
@@ -93,7 +163,7 @@ class Index:
         """
 
         # We initailize self.stop_words so we don't create it over and over again :)
-        if word in self.stop_words:
+        if word in self.stopSet:
             return True
         else:
             return False
@@ -109,16 +179,16 @@ class Index:
         return w.lemmatize()
 
     
-    def htmlConvert(self, html_file):
-        """
-        This function will use beautiful soup, and convert html_file into url_data
-        We only want this function to turn the html_file into a beautiful soup txt
-        :param html_file = will be used to turn into html_code
-        :returns html code
-        """
-        return BeautifulSoup(html_file, 'lxml')
+    # def htmlConvert(self, html_file):
+    #     """
+    #     This function will use beautiful soup, and convert html_file into url_data
+    #     We only want this function to turn the html_file into a beautiful soup txt
+    #     :param html_file = will be used to turn into html_code
+    #     :returns html code
+    #     """
+    #     return BeautifulSoup(html_file, 'lxml')
 
-
+    # In the future there needs to be better functionalities here
     def htmlContentToList(self, url_data):
         """
         This function will get the url_data and split every word that is categorized as text in url_data
@@ -143,7 +213,6 @@ class Index:
     """
     Will be in order
     some arguement parameter for html file
-    url_data = htmlConvert(some html File)
     unprocessed_list = htmlContenetToList(url_data)
     tokenized_list = tokenize(unprocessed_list)
     frequency_dict = computeWordFrequencies(tokenized_list)

@@ -18,6 +18,11 @@ class TestStringMethods(unittest.TestCase):
         index = Index()
         tmp = ["cars'", "car's", "cars"]
         self.assertEquals(index.tokenize(tmp), ["car", "car", "car"])
+    
+    def testLemmatizeWithTokeinze2(self):
+        index = Index()
+        tmp = ["donkeys's"]
+        self.assertEquals(index.tokenize(tmp), ["donkey"])
 
     def testLemmatizeWithStopWorks(self):
         index = Index()
@@ -32,7 +37,25 @@ class TestStringMethods(unittest.TestCase):
     def testComputeFreq2(self):
         index = Index()
         tmp = ["nuggets" , "chicken" , "chicken", "chicken", "chicken"]
-        self.assertEquals(index.computeWordFrequencies(tmp), {'chicken' : 4, 'nuggets' : 1 })       
+        self.assertEquals(index.computeWordFrequencies(tmp), {'chicken' : 4, 'nuggets' : 1 })
+
+    def testComputeFreq3(self):
+        index = Index()
+        tmp = ["didnt" , "didn't" , "didn't", "didn't","didn't", "didnt'"]
+        some_list = index.tokenize(tmp)
+        self.assertEquals(index.computeWordFrequencies(some_list), {}) 
+
+    def testComputeFreq4(self):
+        index = Index()
+        tmp = ["Alexs", "Alex's"]
+        some_list = index.tokenize(tmp)
+        self.assertEquals(index.computeWordFrequencies(some_list), {"Alex's" : 1})          
         
+    def testComputeFreq5(self):
+        index = Index()
+        tmp = ["can't" , "cant" , "cant'"]
+        some_list = index.tokenize(tmp)
+        self.assertEquals(index.computeWordFrequencies(some_list), {"cant" : 2}) 
+
 if __name__ == '__main__':
     unittest.main()
