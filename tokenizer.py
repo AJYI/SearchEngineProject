@@ -33,6 +33,7 @@ class Tokenizer:
 
                 # Condition to lemmatize and remove stopwords
                 else:
+
                     # Checking whether the word is a word or not
                     if d.check(word) is False:
                         continue
@@ -61,70 +62,74 @@ class Tokenizer:
         :param word = a word with bad characters that need to be processed
         :return: after the word with bad characters have been processed, it will a list
         """
-        s = list(word)
+        try:
+            s = list(word)
 
-        # Checking is there is any bad characters within the beginning and the ends of the words
-        if not s[0].isalnum() or not s[0].isascii():
-            s.remove(s[0])
-        if not s[-1].isalnum() or not s[-1].isascii():
-            s.remove(s[-1])
-        processed_word = "".join(s)
+            # Checking is there is any bad characters within the beginning and the ends of the words
+            if not s[0].isalnum() or not s[0].isascii():
+                s.remove(s[0])
+            if not s[-1].isalnum() or not s[-1].isascii():
+                s.remove(s[-1])
+            processed_word = "".join(s)
 
-        """
-        Will be using two flags
-        If the first flag is true and second flag is false, we pass in the first flag word
-        If the first flag is true and second flag is true, we pass in the second flag word
-        If the first flag is false and second flag is false, return ""
-        If the first flag is false and second flag is true, we pass in the second flag word
-        """
-        outer_flag1 = False
-        outer_flag2 = False
+            """
+            Will be using two flags
+            If the first flag is true and second flag is false, we pass in the first flag word
+            If the first flag is true and second flag is true, we pass in the second flag word
+            If the first flag is false and second flag is false, return ""
+            If the first flag is false and second flag is true, we pass in the second flag word
+            """
+            outer_flag1 = False
+            outer_flag2 = False
 
-        d = enchant.Dict("en_US")
-        processed_text = ''
+            d = enchant.Dict("en_US")
+            processed_text = ''
 
-        if(d.check(processed_word)):
-            outer_flag1 = True
-        
-        if self.removeStopWord(processed_word):
+            if(d.check(processed_word)):
+                outer_flag1 = True
+
+            if self.removeStopWord(processed_word):
+                return ""
+
+            for i in range(len(processed_word)):
+                try:
+                    if not processed_word[i].isalnum() or not processed_word[i].isascii():
+                        processed_text += ''
+                    else:
+                        processed_text += processed_word[i].lower()
+                except:
+                    # If for some reason, an error occurs
+                    processed_text += ''
+
+            lem_word = self.lemmatize(processed_text)
+
+            inner_flag1 = False
+
+            if d.check(lem_word):
+                inner_flag1 = True
+
+            if inner_flag1 is True:
+                processed_text = lem_word
+                outer_flag2 = True
+            else:
+                outer_flag2 = False
+
+            # Checks whether the word we got is a stop word
+            if self.removeStopWord(processed_text):
+                outer_flag2 = False
+
+            # Final Check
+            if outer_flag1 is True and outer_flag2 is True:
+                return processed_text
+            if outer_flag1 is True and outer_flag2 is False:
+                return processed_word
+            if outer_flag1 is False and outer_flag2 is True:
+                return processed_text
+
+            return ""
+        except:
             return ""
 
-        for i in range(len(processed_word)):
-            try:
-                if not processed_word[i].isalnum() or not processed_word[i].isascii():
-                    processed_text += ''
-                else:
-                    processed_text += processed_word[i].lower()
-            except:
-                # If for some reason, an error occurs
-                processed_text += ''
-
-        lem_word = self.lemmatize(processed_text)
-
-        inner_flag1 = False
-        
-        if d.check(lem_word):
-            inner_flag1 = True
-
-        if inner_flag1 is True:
-            processed_text = lem_word
-            outer_flag2 = True
-        else:
-            outer_flag2 = False
-        
-        # Checks whether the word we got is a stop word
-        if self.removeStopWord(processed_text):
-            outer_flag2 = False
-
-        # Final Check
-        if outer_flag1 is True and outer_flag2 is True:
-            return processed_text
-        if outer_flag1 is True and outer_flag2 is False:
-            return processed_word
-        if outer_flag1 is False and outer_flag2 is True:
-            return processed_text
-        
-        return ""
 
 
     def removeStopWord(self, word):
@@ -162,13 +167,16 @@ class Tokenizer:
         return unprocessed_list
 
 
-    def computeWordFrequencies(self, tokenized_list):
-        """
-        Purpose: counts the number of occurrences of each token in the token list (List<Token> tokens).
-        Return: a dictionary of counted words
-        """
-        count_dict = Counter(tokenized_list)
-        return count_dict
+    # def computeWordFrequencies(self, tokenized_list):
+    #     """
+    #     Purpose: counts the number of occurrences of each token in the token list (List<Token> tokens).
+    #     Return: a sorted dictionary of counted words
+    #     """
+    #     count_dict = Counter(tokenized_list)
+    #     dict_items = count_dict.items() # new
+    #     sorted_dict = sorted(dict_items) # new
+    #     return dict(sorted_dict)
+    #     #return count_dict
 
 
     #An implementation idea of how the function will progress
