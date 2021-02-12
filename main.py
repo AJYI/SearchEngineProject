@@ -8,7 +8,7 @@ if __name__ == "__main__":
     with open("WEBPAGES_RAW/bookkeeping.json") as keyFile:
         urlKey_list = json.load(keyFile)
     basepath = 'WEBPAGES_RAW/'
-    counter = 0
+    #counter = 0
     testSpimi = InvertedIndex()
     for urlKey in urlKey_list:
         # get HTML file's path
@@ -30,9 +30,9 @@ if __name__ == "__main__":
 
                     testSpimi.spimi_invert(tokenized_list, urlKey)
 
-                    counter += 1
-                    if (counter > 10000):
-                        break
+                    # counter += 1
+                    # if (counter > 200):
+                    #     break
                 except:
                     # We have a broken HTML. Go to the next HTML file!
                     continue

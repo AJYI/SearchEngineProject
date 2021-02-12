@@ -3,6 +3,8 @@ from collections import OrderedDict
 from collections import Counter
 from llist import dllist, dllistnode
 from LLAttribute import LLAttribute
+import os
+import json
 
 
 # We will be creating a spimi index
@@ -15,6 +17,7 @@ class InvertedIndex():
         self.invertedIndexName = "Cache/invertedIndexNo_"
         self.word_dictionary = {}
         self.file = open(f"{self.invertedIndexName}{self.fileNO}.txt", 'w')
+        self.fileName = f"{self.invertedIndexName}{self.fileNO}.txt"
         self.docID = ""
 
 
@@ -60,17 +63,66 @@ class InvertedIndex():
     
     # writing the file to disk
     def write_block_to_disk(self):
+        numberOfUniqueDocID = 0
+        numberOfUniqueWords = 0
         for i in self.word_dictionary:
-            self.file.write(f"{i}: ")
+            self.file.write(f"{i}[{self.getFreqInCorpus(i)}]: ")
             for objLL in self.word_dictionary[i]:
-                self.file.write(f"[{objLL.getDocID()},{objLL.getFrequency()}] ")
+                self.file.write(f"[{objLL.getDocID()},{objLL.getFrequency()}]")
+                numberOfUniqueDocID += 1
             self.file.write("\n")
+            numberOfUniqueWords += 1
+
+        #1: Writing the statistics:
+        self.file.write("\nIndex Statistics:\n")
+        self.file.write(f"Number of unique documents ids in index is {numberOfUniqueDocID} documents\n")
+        self.file.write(f"Number of unique words is {numberOfUniqueWords} unique words\n")
+        self.file.write(f"File Size in Bytes is {os.stat(self.fileName).st_size}KB\n")
+        self.file.write(f"\n\n")
+        
+        #2: Sample Query Results:
+        urlKeyList = []
+        with open("WEBPAGES_RAW/bookkeeping.json") as keyFile:
+            urlKeyList = json.load(keyFile)
+
+        i = 0
+
+        self.file.write(f"Informatics List:\n")
+        if 'informatics' in self.word_dictionary:
+            for objLL in self.word_dictionary['informatics']:
+                if i >= 20:
+                    break
+                self.file.write(f"URL: {urlKeyList[objLL.getDocID()]}\n")
+                i += 1
+        self.file.write(f"\n\n")
+
+        i = 0
+        self.file.write(f"Irvine List:\n")
+        if 'irvine' in self.word_dictionary:
+            for objLL in self.word_dictionary['irvine']:
+                if i >= 20:
+                    break
+                self.file.write(f"URL: {urlKeyList[objLL.getDocID()]}\n")
+                i += 1
+        self.file.write(f"\n\n")
+
+        i = 0
+        self.file.write(f"Mondego List:\n")
+        if 'mondego' in self.word_dictionary:
+            for objLL in self.word_dictionary['mondego']:
+                if i >= 20:
+                    break
+                self.file.write(f"URL: {urlKeyList[objLL.getDocID()]}\n")
+                i += 1
+        self.file.write(f"\n\n")
+
 
     # initializes a new file
     def initializeNewFile(self):
         self.file.close()
         self.fileNO += 1
         self.file = open(f"{self.invertedIndexName}{self.fileNO}.txt")
+        self.fileName = f"{self.invertedIndexName}{self.fileNO}.txt"
     
 
     # When the program finishes running, must close the file
@@ -87,9 +139,15 @@ class InvertedIndex():
         count_dict = Counter(token_stream)
         return count_dict
 
-    def printDictionary(self):
-        for key in self.word_dictionary:
-            print(f"<{key}:", end='')
-            for objLL in self.word_dictionary[key]:
-                print(f"({objLL.getDocID()},{objLL.getFrequency()})", end="")
-            print(">")
+    
+    # Gets the length of the LL(Linked List)
+    def getFreqInCorpus(self, key):
+        return self.word_dictionary[key].size
+
+
+    # def printDictionary(self):
+    #     for key in self.word_dictionary:
+    #         print(f"<{key}:", end='')
+    #         for objLL in self.word_dictionary[key]:
+    #             print(f"({objLL.getDocID()},{objLL.getFrequency()})", end="")
+    #         print(">")

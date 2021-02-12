@@ -2,7 +2,6 @@ from textblob import Word
 from textblob import TextBlob
 from bs4 import BeautifulSoup
 from collections import Counter
-import enchant
 
 class Tokenizer:
     """
@@ -18,7 +17,6 @@ class Tokenizer:
         :param unprocessed_list: list of tokens that needs verification
         :return: a processed_list = A list of tokenized words
         """
-        d = enchant.Dict("en_US")
         processed_list = []
 
         for word in unprocessed_list:
@@ -26,20 +24,19 @@ class Tokenizer:
                 # When a word is not alphanum or is ascii
                 if not word.isalnum() or not word.isascii():
                     # This function call will return a list
-                    returned_word = self.tokenizeWordWithBadCharacters(word)
-                    if len(returned_word) == 0:
-                        continue
-                    processed_list.append(returned_word)
+                    processed_list.append(self.tokenizeWordWithBadCharacters(word))
 
-                # Condition to lemmatize and remove stopwords
                 else:
-
-                    # Checking whether the word is a word or not
-                    if d.check(word) is False:
-                        continue
-
+                    """
+                    The "good condition":
+                        This is where anything without nonascii or non alpha num stuff will be appended to the processed_list
+                        Keep in mind, it's expected that strings like
+                        2009 will be cleared
+                        regular words will be cleared
+                        incorrect words like xtafasf could be cleared
+                    """
                     # Lemmatizing the word
-                    lem_word = self.lemmatize(word)
+                    lem_word = self.lemmatize_with_post_tags(word)
 
                     # If lem_word is found in the removeStopWords function, then we pass
                     if self.removeStopWord(lem_word):
@@ -62,74 +59,40 @@ class Tokenizer:
         :param word = a word with bad characters that need to be processed
         :return: after the word with bad characters have been processed, it will a list
         """
-        try:
-            s = list(word)
+        processed_text = ''
+        word = word.lower()
+        for i in range(len(word)):
+            try:
+                if not word[i].isalnum() or not word[i].isascii():
+                    processed_text += ' '
+                else:
+                    processed_text += word[i]
+            # If for some reason there is an error
+            except:
+                processed_text += ' '
 
-            # Checking is there is any bad characters within the beginning and the ends of the words
-            if not s[0].isalnum() or not s[0].isascii():
-                s.remove(s[0])
-            if not s[-1].isalnum() or not s[-1].isascii():
-                s.remove(s[-1])
-            processed_word = "".join(s)
+        # We split the processed tokens and put it into a list
+        pre_list = processed_text.split()
+        for i in range(pre_list):
+            lem_word = self.lemmatize_with_post_tags(pre_list[i])
 
-            """
-            Will be using two flags
-            If the first flag is true and second flag is false, we pass in the first flag word
-            If the first flag is true and second flag is true, we pass in the second flag word
-            If the first flag is false and second flag is false, return ""
-            If the first flag is false and second flag is true, we pass in the second flag word
-            """
-            outer_flag1 = False
-            outer_flag2 = False
+            # If lem_word is found in the removeStopWords function, then we pass
+            if self.removeStopWord(lem_word):
+                pre_list(i).pop()
+            
+            pre_list[i] = lem_word
+        return pre_list
+        
 
-            d = enchant.Dict("en_US")
-            processed_text = ''
-
-            if(d.check(processed_word)):
-                outer_flag1 = True
-
-            if self.removeStopWord(processed_word):
-                return ""
-
-            for i in range(len(processed_word)):
-                try:
-                    if not processed_word[i].isalnum() or not processed_word[i].isascii():
-                        processed_text += ''
-                    else:
-                        processed_text += processed_word[i].lower()
-                except:
-                    # If for some reason, an error occurs
-                    processed_text += ''
-
-            lem_word = self.lemmatize(processed_text)
-
-            inner_flag1 = False
-
-            if d.check(lem_word):
-                inner_flag1 = True
-
-            if inner_flag1 is True:
-                processed_text = lem_word
-                outer_flag2 = True
-            else:
-                outer_flag2 = False
-
-            # Checks whether the word we got is a stop word
-            if self.removeStopWord(processed_text):
-                outer_flag2 = False
-
-            # Final Check
-            if outer_flag1 is True and outer_flag2 is True:
-                return processed_text
-            if outer_flag1 is True and outer_flag2 is False:
-                return processed_word
-            if outer_flag1 is False and outer_flag2 is True:
-                return processed_text
-
-            return ""
-        except:
-            return ""
-
+    # A helper function for tokenize
+    # This function properly lemmatizes with POS
+    def lemmatize_with_post_tags(self, word):
+        w = TextBlob(word)
+        tag_dict = {"J": 'a', "N": 'n', "V": 'v', "R": 'r'}
+        tag = tag_dict.get(w.tags[0][1][0], 'n')
+        pre_lem = Word(word)
+        lem_word = pre_lem.lemmatize(tag)
+        return lem_word  
 
 
     def removeStopWord(self, word):
@@ -163,7 +126,8 @@ class Tokenizer:
         :param url_data = the html text page string
         :returns a unprocessed list from url_data text
         """
-        unprocessed_list = list(url_data.getText().lower().split())
+        #unprocessed_list = list(url_data.find('p').getText().lower().split())
+        unprocessed_list = list(url_data.getText(separator= ' ').lower().split())
         return unprocessed_list
 
 
