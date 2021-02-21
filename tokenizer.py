@@ -10,7 +10,7 @@ class Tokenizer:
 
     def __init__(self):
         self.stopSet = set(line.strip() for line in open('stopWords.txt'))
-        pass
+
 
     def tokenize(self, unprocessed_list):
         """
@@ -94,6 +94,11 @@ class Tokenizer:
         lem_word = pre_lem.lemmatize(tag)
         return lem_word  
 
+        # just regular lemmatize
+        # pre_lem = Word(word)
+        # lem_word = pre_lem.lemmatize()
+        # return lem_word  
+
 
     def removeStopWord(self, word):
         """
@@ -129,18 +134,6 @@ class Tokenizer:
         #unprocessed_list = list(url_data.find('p').getText().lower().split())
         unprocessed_list = list(url_data.getText(separator= ' ').lower().split())
         return unprocessed_list
-
-
-    # def computeWordFrequencies(self, tokenized_list):
-    #     """
-    #     Purpose: counts the number of occurrences of each token in the token list (List<Token> tokens).
-    #     Return: a sorted dictionary of counted words
-    #     """
-    #     count_dict = Counter(tokenized_list)
-    #     dict_items = count_dict.items() # new
-    #     sorted_dict = sorted(dict_items) # new
-    #     return dict(sorted_dict)
-    #     #return count_dict
 
 
     #An implementation idea of how the function will progress
