@@ -13,6 +13,7 @@ The information that will be contained in the text file is in the form of:
                         [KEY, UNIQUE_DOC_ID, DOC_ID, FREQUENCY]
 
 database:
+We will be using mongoDB and it will need to be downloaded in order to have full functionality.
 After the Inverted_index has been created, we will get the textfile(invertexIndexNo_x) and use it to create out database
 Our database would be in the form of:
 
