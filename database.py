@@ -48,12 +48,12 @@ class Database:
                     if collection.count_documents({'_id': key}, limit=1) != 0:
                         collection.update({"_id": db_list[0]}, {"$inc": {"total": 1}})
                         collection.update({"_id": db_list[0]}, {'$push': {
-                            "doc_info": {"uniqueID": db_list[1], "OriginalID": db_list[2], "Frequency": db_list[3]}}})
+                            "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3]}}})
                         continue
                     else:
                         # Inputs the key into the database if the key doesn't exist
                         post = {"_id": db_list[0], "total": 1, "doc_info": [
-                            {"uniqueID": db_list[1], "OriginalID": db_list[2], "Frequency": db_list[3]}]}
+                            {"uniqueID": db_list[1], "originalID": db_list[2], "orequency": db_list[3]}]}
                         collection.insert_one(post)
                         continue
 
