@@ -37,7 +37,7 @@ class Index:
             if os.path.isfile(htmlFile):
                 with open(htmlFile, 'rb') as fp:
                     try:
-                        soup = BeautifulSoup(fp, "html.parser")
+                        soup = BeautifulSoup(fp, "lxml")
                         soupStr = str(soup).encode()
                         # if we have a broken HTML, then continue to next HTML file
                         if lxml.html.fromstring(soupStr).find('.//*') is None:
