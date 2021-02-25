@@ -32,7 +32,7 @@ class Spimi:
         self.uniqueDocID = 0
 
 
-    def create_block(self, token_stream, docID):
+    def create_block(self, token_dict, docID):
         """
         spimi_invert is similar to the psuedo code given in the lecture
         token_stream == The token that was tokenized by the tokenizer
@@ -40,7 +40,7 @@ class Spimi:
         """
 
         # Gets the frequency dictionary from token_stream
-        freq_of_word_dict = self.computeWordFrequencies(token_stream)
+        freq_of_word_dict = self.computeWordFrequencies(token_dict)
 
         # SPIMI memory check here
         # if memory(RAM) is past the 80% threshold then we write the block to disk(Essentially the while(free memory available))
@@ -122,7 +122,6 @@ class Spimi:
         """
         for i in self.word_dictionary:
             for objLL in self.word_dictionary[i]:
-                # self.file.write(f"\u007b'{i}':[{objLL.getUniqueDocID()}, {objLL.getDocID()}, {objLL.getFrequency()}]\u007d\n")
                 self.file.write(
                     f"[\"{i}\", \"{objLL.getUniqueDocID()}\", \"{objLL.getDocID()}\", {objLL.getFrequency()}]\n")
 
@@ -138,12 +137,61 @@ class Spimi:
         self.file.close()
 
 
-    def computeWordFrequencies(self, token_stream):
+    def computeWordFrequencies(self, token_dict):
         """
         Purpose: counts the number of occurrences of each token in the token list (List<Token> tokens).
-        Return: a sorted dictionary of counted words
+        Return: a sorted dictionary of counted words, number of titles, number of headers, number of bolds, and number of body
+        Essentially [Value_Total, title_total, header_total, bold_total, body_total]
         """
-        count_dict = Counter(token_stream)
+        count_dict_title = Counter(token_dict['title'])
+        count_dict_header = Counter(token_dict['header'])
+        count_dict_bold = Counter(token_dict['bold'])
+        count_dict_body = Counter(token_dict['body'])
+
+        #print(count_dict_title)
+        #print(count_dict_header)
+        #print(count_dict_bold)
+        #print(count_dict_body)
+        
+        # Initializing an empty dict
+        count_dict = {}
+
+        # for the count_dict_title, keys in this first entry will be unique
+        for i in count_dict_title:
+            count_dict[i] = [count_dict_title[i], count_dict_title[i], 0, 0, 0]
+        
+        # for header
+        # for the count_dict_headers, keys might already exist
+        for i in count_dict_header:
+            # if the key exists in the dictionary
+            if i in count_dict:
+                count_dict[i][0] = count_dict[i][0] + count_dict_header[i]
+                count_dict[i][2] = count_dict_header[i]
+            # if it doesnt exist add it to the dictionary
+            else:
+                count_dict[i] = [count_dict_header[i], 0, count_dict_header[i], 0, 0]
+        
+        # for bold
+        # for the count_dict_bold, keys might already exist
+        for i in count_dict_bold:
+            # if the key exists in the dictionary
+            if i in count_dict:
+                count_dict[i][0] = count_dict[i][0] + count_dict_bold[i]
+                count_dict[i][3] = count_dict_bold[i]
+            # if it doesnt exist add it to the dictionary
+            else:
+                count_dict[i] = [count_dict_header[i], 0, 0, count_dict_bold[i], 0]
+        
+        # for body
+        # for the count_dict_body, keys might already exist
+        for i in count_dict_body:
+            # if the key exists in the dictionary
+            if i in count_dict:
+                count_dict[i][0] = count_dict[i][0] + count_dict_body[i]
+                count_dict[i][4] = count_dict_body[i]
+            # if it doesnt exist add it to the dictionary
+            else:
+                count_dict[i] = [count_dict_body[i], 0, 0, 0, count_dict_body[i]]
         return count_dict
 
 
