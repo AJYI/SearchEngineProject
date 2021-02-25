@@ -44,6 +44,7 @@ class Index:
                             continue
 
                         tokenObj = Tokenizer()
+                        # soup = tokenObj.soupTagImportance(soup, tokenObj)
                         unprocessed_list = tokenObj.htmlContentToList(soup)
                         tokenized_list = tokenObj.tokenize(unprocessed_list)
                         # frequency_dict = tokenObj.computeWordFrequencies(tokenized_list)
@@ -65,3 +66,4 @@ class Index:
 
         # We write to the database
         mongoDataBase.write_to_database()
+ 
