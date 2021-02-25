@@ -77,6 +77,10 @@ class Tokenizer:
         for i in pre_list:
             lem_word = self.lemmatize_with_post_tags(i)
 
+            # if i is stopWords , then we continue the loop
+            if self.removeStopWord(lem_word):
+                continue
+
             # If lem_word is found in the removeStopWords function, then we pass
 
             pro_list.append(lem_word)
@@ -190,15 +194,3 @@ class Tokenizer:
         tags_dict["body"] = body_tokenized_list    
 
         return tags_dict
-
-    #An implementation idea of how the function will progress
-    
-    """
-    Will be in order
-    some arguement parameter for html file
-    unprocessed_list = htmlContenetToList(url_data)
-    tokenized_list = tokenize(unprocessed_list)
-    frequency_dict = computeWordFrequencies(tokenized_list)
-
-    In the end we will have a count_dict returned which will be used to add to the linked list that will be implemented soon
-    """

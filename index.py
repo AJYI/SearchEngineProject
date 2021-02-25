@@ -14,7 +14,7 @@ class Index:
         basepath = 'WEBPAGES_RAW/'
 
         # FOR DEBUGGING PURPOSES
-        counter = 0
+        #counter = 0
 
         # Creating spimi object
         spimi = Spimi()
@@ -24,7 +24,7 @@ class Index:
         # This checks whether the database already exists or not
         # If it exists, there is no need to recreate a database
         if mongoDataBase.checkExistingDataBase() is True:
-            print("Error: Database already exists")
+            print("Initializing the query")
             return
 
         # If database doesn't exist, then we create a new index(AKA invertedIndex)
@@ -51,12 +51,10 @@ class Index:
                         # new implemntation
                         spimi.create_block(tokenized_dict, urlKey)
 
-
-
-                        #FOR DEBUGGING PURPOSES
-                        counter += 1
-                        if (counter > 250):
-                            break
+                        # FOR DEBUGGING PURPOSES
+                        # counter += 1
+                        # if (counter > 50):
+                        #     break
                     except:
                         # We have a broken HTML. Go to the next HTML file!
                         #print(f"EXCEPTED")
