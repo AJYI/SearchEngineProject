@@ -1,5 +1,5 @@
 class LLAttribute:
-
+    
     def __init__(self, uniqueDocID, docID, frequency):
         self.uniqueDocID = uniqueDocID
         self.docID = docID
