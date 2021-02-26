@@ -21,7 +21,7 @@ class Spimi:
 
         # Initializing the first page we will go through
         self.fileNO = 0  # Starting at file number 0
-        self.invertedIndexName = "Cache/invertedIndexNo_"
+        self.invertedIndexName = "Cache/"
         self.file = open(f"{self.invertedIndexName}{self.fileNO}.txt", 'w')
         self.docID = ""
 
@@ -44,7 +44,7 @@ class Spimi:
 
         # SPIMI memory check here
         # if memory(RAM) is past the 80% threshold then we write the block to disk(Essentially the while(free memory available))
-        if float(psutil.virtual_memory().percent > 40):
+        if float(psutil.virtual_memory().percent > 70):
             # Will order the dictionary
             self.order_dict()
 

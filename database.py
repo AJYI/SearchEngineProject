@@ -1,6 +1,8 @@
 import pymongo
 from pathlib import Path
 import os
+from natsort import os_sorted
+
 
 
 class Database:
@@ -20,7 +22,11 @@ class Database:
 
     def write_to_database(self):
         print("\nWriting to database\n")
-        iterFiles = Path('Cache/').iterdir()
+
+        # This line of code is for when there are more than one files in the cache, we need it to be in numerical order
+        # os_sorting for natsort
+        # Source: https://stackoverflow.com/questions/4836710/is-there-a-built-in-function-for-string-natural-sort
+        iterFiles = os_sorted(Path('Cache/').iterdir())
 
         # Reading all the files in Cache
         for file in iterFiles:
@@ -44,6 +50,7 @@ class Database:
 
                     # This checks whether the key exists in the database
 
+                    # Source for this code
                     # https://stackoverflow.com/questions/25163658/mongodb-return-true-if-document-exists
                     if collection.count_documents({'_id': key}, limit=1) != 0:
                         collection.update({"_id": db_list[0]}, {"$inc": {"total": 1}})
