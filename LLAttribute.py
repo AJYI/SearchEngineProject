@@ -24,5 +24,8 @@ class LLAttribute:
     Return the frequency of the current token in this docID. 
     (NOT the frequency of the entire corpus)
     """
+    """
+    Should return a list now
+    """
     def getFrequency(self):
         return self.frequency

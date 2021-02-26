@@ -7,7 +7,7 @@ import re
 
 # 0/5 has only h1
 # 0/6 has more than h1
-htmlFile = os.path.join('WEBPAGES_RAW/', '0/6')
+htmlFile = os.path.join('WEBPAGES_RAW/', '0/10')
 if os.path.isfile(htmlFile):
     with open(htmlFile) as fp:
         # soup contains HTML content

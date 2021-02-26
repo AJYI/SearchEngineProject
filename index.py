@@ -14,7 +14,7 @@ class Index:
         basepath = 'WEBPAGES_RAW/'
 
         # FOR DEBUGGING PURPOSES
-        # counter = 0
+        counter = 0
 
         # Creating spimi object
         spimi = Spimi()
@@ -44,21 +44,22 @@ class Index:
                             continue
 
                         tokenObj = Tokenizer()
-                        # soup = tokenObj.soupTagImportance(soup, tokenObj)
-                        unprocessed_list = tokenObj.htmlContentToList(soup)
-                        tokenized_list = tokenObj.tokenize(unprocessed_list)
-                        # frequency_dict = tokenObj.computeWordFrequencies(tokenized_list)
-                        # print(frequency_dict)
 
-                        spimi.create_block(tokenized_list, urlKey)
+                        # New implementation for Alice function
+                        tokenized_dict = tokenObj.soupTagImportance(soup)
 
-                        # FOR DEBUGGING PURPOSES
-                        # counter += 1
-                        # if (counter > 100):
-                        #     break
+                        # new implemntation
+                        spimi.create_block(tokenized_dict, urlKey)
+
+
+
+                        #FOR DEBUGGING PURPOSES
+                        counter += 1
+                        if (counter > 250):
+                            break
                     except:
                         # We have a broken HTML. Go to the next HTML file!
-                        print(f"EXCEPTED")
+                        #print(f"EXCEPTED")
                         continue
 
         # Would need to write block to disk then clear
