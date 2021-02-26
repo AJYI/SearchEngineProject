@@ -145,6 +145,8 @@ class Tokenizer:
         tags_dict = {}
         title_unprocessed_list = self.htmlContentToList(title)
         title_tokenized_list = self.tokenize(title_unprocessed_list)
+
+        tags_dict["total_words"] = len(title_tokenized_list)
         
         tags_dict["title"] = title_tokenized_list
         
@@ -191,6 +193,6 @@ class Tokenizer:
         body_unprocessed_list = self.htmlContentToList(soup)
         body_tokenized_list = self.tokenize(body_unprocessed_list)
 
-        tags_dict["body"] = body_tokenized_list    
+        tags_dict["body"] = body_tokenized_list  
 
         return tags_dict
