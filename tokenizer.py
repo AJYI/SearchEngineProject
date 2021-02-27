@@ -2,8 +2,8 @@ from textblob import Word
 from textblob import TextBlob, blob
 from bs4 import BeautifulSoup
 from collections import Counter
-from pattern.en import lemma
-import nltk
+import pattern
+from pattern.en import lemma, lexeme
 
 
 class Tokenizer:
@@ -23,19 +23,20 @@ class Tokenizer:
         # Tokenizes out the punctuations/underscore/and the other stuff
         fullTokenizedList = []
         try:
+            lemmaSentence = self.lemmatize(sentence)
+
             processedSentence = ""
-            if not sentence.isalnum() or not sentence.isascii():
+            if not lemmaSentence.isalnum() or not lemmaSentence.isascii():
                 for i in range(len(sentence)):
                     try:
-                        if not sentence[i].isalnum() or not sentence[i].isascii():
+                        if not lemmaSentence[i].isalnum() or not lemmaSentence[i].isascii():
                             processedSentence += " "
                         else:
-                            processedSentence += sentence[i]
+                            processedSentence += lemmaSentence[i]
                     except:
                         processedSentence += " "
 
-            lemmaSentence = self.lemmatize(processedSentence)
-            blob = TextBlob(lemmaSentence)
+            blob = TextBlob(processedSentence)
             tokenizedList = list(blob.words)
             
             # Checks for stop words, if stop words exists, it is removed
@@ -46,21 +47,17 @@ class Tokenizer:
                     fullTokenizedList.append(i)
         except Exception as e:
             # Used to check if there are errors that needs to be fixed
-            print(e)
-            print("here")
+            print(f"Error in tokenize: {e}")
         return fullTokenizedList
 
+    # Returns a lemmatized sentence
     def lemmatize(self, sentence):
-        word = sentence.split()
-        newWordList = []
-        for i in word:
-            w = TextBlob(i)
-            tag_dict = {"J": 'a', "N": 'n', "V": 'v', "R": 'r'}
-            tag = tag_dict.get(w.tags[0][1][0], 'n')
-            pre_lem = Word(i)
-            lem_word = pre_lem.lemmatize(tag)
-            newWordList.append(lem_word)
-        return ' '.join(newWordList)
+        newSentence = ""
+        try:
+            newSentence = " ".join([lemma(wd) for wd in sentence.split()])
+        except Exception as e:
+            print(f"Error in lemmatize: {e}")
+        return newSentence
 
 
     def checkStopWord(self, word):
