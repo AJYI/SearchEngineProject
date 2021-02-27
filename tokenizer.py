@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from collections import Counter
 import pattern
 from pattern.en import lemma, lexeme
+from nltk.stem import WordNetLemmatizer 
 
 
 class Tokenizer:
@@ -52,12 +53,9 @@ class Tokenizer:
 
     # Returns a lemmatized sentence
     def lemmatize(self, sentence):
-        newSentence = ""
-        try:
-            newSentence = " ".join([lemma(wd) for wd in sentence.split()])
-        except Exception as e:
-            print(f"Error in lemmatize: {e}")
-        return newSentence
+        # SOURCE: https://www.machinelearningplus.com/nlp/lemmatization-examples-python/
+        tmpSentence = TextBlob(sentence)
+        return " ".join([w.lemmatize() for w in tmpSentence.words])
 
 
     def checkStopWord(self, word):
@@ -82,60 +80,77 @@ class Tokenizer:
         :param url_data = the html text page string
         :returns a unprocessed list from url_data text
         """
-        return url_data.getText(separator= ' ').lower()
+        sentence = ""
+        try:
+            sentence = url_data.getText(separator= ' ').lower()
+        except Exception as e:
+            print(f"ErrorInHTMLContent: {e}")
+            return sentence
+        return sentence
+
 
     # process list according to tags
     def soupTagImportance(self, soup):
         title = soup.find('title')
         tags_dict = {}
-        title_unprocessed = self.htmlContentSeparator(title)
 
-        title_tokenized_list = self.tokenize(title_unprocessed)
+        # For the title
+        if title is None:
+            tags_dict["title"] = []
+        else:
+            title_unprocessed = self.htmlContentSeparator(title)
 
-        tags_dict["title"] = title_tokenized_list
-        title.extract()
+            title_tokenized_list = self.tokenize(title_unprocessed)
 
+            tags_dict["title"] = title_tokenized_list
+            title.extract()
+
+        # For the h1, h2, h3
         header_tokenized_list = []
         # remove heading 1,2,3
         h1 = soup.find('h1')
         if h1 is not None:
             h1_unprocessed_list = self.htmlContentSeparator(h1)
-            header_tokenized_list = self.tokenize(h1_unprocessed_list)
+            h1_tokenized_list = self.tokenize(h1_unprocessed_list)
+            header_tokenized_list = h1_tokenized_list
             h1.extract()
             
-            h2 = soup.find('h2')
+        h2 = soup.find('h2')
+        if h2 is not None:
+            h2_unprocessed_list = self.htmlContentSeparator(h2)
+            h2_tokenized_list = self.tokenize(h2_unprocessed_list)
+            header_tokenized_list = header_tokenized_list + h2_tokenized_list
+            h2.extract()
 
-            if h2 is not None:
-                h2_unprocessed_list = self.htmlContentSeparator(h2)
-                h2_tokenized = self.tokenize(h2_unprocessed_list)
-                header_tokenized_list = header_tokenized_list + h2_tokenized
-                h2.extract()
+        h3 = soup.find('h3')
+        if h3 is not None:
+            h3_unprocessed_list = self.htmlContentSeparator(h3)
+            h3_tokenized_list = self.tokenize(h3_unprocessed_list)
+            header_tokenized_list = header_tokenized_list + h3_tokenized_list
+            h3.extract()
 
-                h3 = soup.find('h3')
-
-                if h3 is not None:
-                    h3 = soup.find('h3')
-                    h3_unprocessed_list = self.htmlContentSeparator(h3)
-                    h3_tokenized = self.tokenize(h3_unprocessed_list)
-                    header_tokenized_list = header_tokenized_list + h3_tokenized
-
-                    h3.extract()
+        # create a new entry header in tag_dict    
         tags_dict["header"] = header_tokenized_list
-            
-            
-        bold_tokenized_list = []
+
         # remove bold
         bold = soup.find('b')
         if bold is not None:
             bold_unprocessed_list = self.htmlContentSeparator(bold)
             bold_tokenized_list = self.tokenize(bold_unprocessed_list)
             bold.extract()
-        tags_dict["bold"] = bold_tokenized_list
+            tags_dict["bold"] = bold_tokenized_list
+        else:
+            tags_dict["bold"] = []
 
+        # For the body
+        body_unprocessed = self.htmlContentSeparator(soup)
+        if body_unprocessed is None:
+            tags_dict["body"] = []
+        else:
+            #print(body_unprocessed)
+            body_tokenized_list = self.tokenize(body_unprocessed)
+            #print(body_tokenized_list)
 
-        body_unprocessed_list = self.htmlContentSeparator(soup)
-        body_tokenized_list = self.tokenize(body_unprocessed_list)
-
-        tags_dict["body"] = body_tokenized_list  
+            tags_dict["body"] = body_tokenized_list  
 
         return tags_dict

@@ -79,7 +79,11 @@ class Index:
         ################################################################
         
 <<<<<<< HEAD
+<<<<<<< HEAD
         #mongoDataBase.write_to_database(docs)
 =======
         mongoDataBase.write_to_database(docs)
 >>>>>>> 5916d5d4a8690622d9100a616c17fcc988f48da5
+=======
+        #mongoDataBase.write_to_database(docs)
+>>>>>>> 5c05d9326323c90fcc41ceb327361682749cb8cb
