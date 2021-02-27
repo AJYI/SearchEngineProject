@@ -68,7 +68,7 @@ class Index:
 
                     except Exception as e:
                         # Used to check if there are errors that needs to be fixed
-                        #print(e)
+                        print(f"Problem in createIndex: {e}")
                         continue
 
         # After the loop has finished, we must conclude the spimi to make sure all information is written to disk
@@ -78,4 +78,4 @@ class Index:
         # PHASE 2: We write to the database/Creating the inverted index
         ################################################################
         
-        #mongoDataBase.write_to_database(docs)
+        mongoDataBase.write_to_database(docs)
