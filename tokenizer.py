@@ -117,7 +117,14 @@ class Tokenizer:
 
         # For the title
         if title is None:
+            # From observation, if title doesn't exist, then it's most likely some type of doc file
+            # For example observe doc 0/438 or 39/373
             tags_dict["title"] = []
+            tags_dict["title"] = []
+            tags_dict['header'] = []
+            tags_dict['bold'] = []
+            tags_dict['body'] = []
+            return tags_dict
         else:
             title_unprocessed = self.htmlContentSeparator(title)
 
