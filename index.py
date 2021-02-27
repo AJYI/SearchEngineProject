@@ -13,12 +13,19 @@ class Index:
             urlKey_list = json.load(keyFile)
         basepath = 'WEBPAGES_RAW/'
 
-        # FOR DEBUGGING PURPOSES
-        #counter = 0
+        # Total Approved Documented
+        docs = 0
 
-        # Creating spimi object
+        # FOR DEBUGGING PURPOSES
+        counter = 0
+
+        #############################################################################
+        # PHASE 1: We create the text file that will have the data for inverted index
+        #############################################################################
+
+
+        # Creating spimi object and database object
         spimi = Spimi()
-        # Creating database object
         mongoDataBase = Database()
 
         # This checks whether the database already exists or not
@@ -27,10 +34,15 @@ class Index:
             print("Initializing the query")
             return
 
-        # If database doesn't exist, then we create a new index(AKA invertedIndex)
         print("Initialization of creating the index")
 
         for urlKey in urlKey_list:
+
+            # FOR DEBUGGING PURPOSES
+            if (counter > 100):
+                break
+            counter += 1
+
             # get HTML file's path
             htmlFile = os.path.join(basepath, urlKey)
             print(htmlFile)
@@ -47,22 +59,23 @@ class Index:
 
                         # New implementation for Alice function
                         tokenized_dict = tokenObj.soupTagImportance(soup)
+                        #print(tokenized_dict)
 
                         # new implemntation
                         spimi.create_block(tokenized_dict, urlKey)
 
-                        # FOR DEBUGGING PURPOSES
-                        # counter += 1
-                        # if (counter > 50):
-                        #     break
-                    except:
-                        # We have a broken HTML. Go to the next HTML file!
-                        #print(f"EXCEPTED")
+                        docs +=1
+
+                    except Exception as e:
+                        # Used to check if there are errors that needs to be fixed
+                        #print(e)
                         continue
 
-        # Would need to write block to disk then clear
+        # After the loop has finished, we must conclude the spimi to make sure all information is written to disk
         spimi.conclude_spimi()
 
-        # We write to the database
-        mongoDataBase.write_to_database()
- 
+        ################################################################
+        # PHASE 2: We write to the database/Creating the inverted index
+        ################################################################
+        
+        #mongoDataBase.write_to_database(docs)
