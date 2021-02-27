@@ -15,7 +15,7 @@ class Database:
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
-        self.db_name = "CS121Test"
+        self.db_name = "CS121Tester"
         self.db = self.cluster[self.db_name]
 
 
@@ -45,7 +45,6 @@ class Database:
         Implications: Will essentially be O(2n) = O(n) and repeat of code
         """
 
-        print("\nWriting to database\n")
 
         # This line of code is for when there are more than one files in the cache, we need it to be in numerical order
         # os_sorting for natsort
@@ -53,6 +52,9 @@ class Database:
         iterFiles = os_sorted(Path('Cache/').iterdir())
 
         # Phase 1
+        print("\n==========================")
+        print("Initializing the keys")
+        print("==========================\n")
         for file in iterFiles:
             with file.open('r') as f:
                 # Reading all the lines within the file
@@ -93,6 +95,9 @@ class Database:
                         continue
 
         # Phase 2
+        print("\n==========================")
+        print("Writing to the database")
+        print("==========================\n")
         for file in iterFiles:
             with file.open('r') as f:
                 for line in f:
@@ -121,4 +126,4 @@ class Database:
 
 
             # Will remove the file after it's content has been created within the database
-            os.remove(file)
+            #os.remove(file)

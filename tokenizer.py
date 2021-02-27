@@ -3,7 +3,6 @@ from textblob import TextBlob, blob
 from bs4 import BeautifulSoup
 from collections import Counter
 import pattern
-from pattern.en import lemma, lexeme
 from nltk.stem import WordNetLemmatizer 
 
 
@@ -25,6 +24,10 @@ class Tokenizer:
         fullTokenizedList = []
         try:
             lemmaSentence = self.lemmatize(sentence)
+            lemmaList = lemmaSentence.split()
+            lemmaListNoNum = self.checkForRawNumbers(lemmaList)
+            lemmaSentence = " ".join(lemmaListNoNum)
+
 
             processedSentence = ""
             if not lemmaSentence.isalnum() or not lemmaSentence.isascii():
@@ -50,6 +53,24 @@ class Tokenizer:
             # Used to check if there are errors that needs to be fixed
             print(f"Error in tokenize: {e}")
         return fullTokenizedList
+    
+
+    def checkForRawNumbers(self, lemmaList):
+        """
+        This function will check if raw number exist within the html page
+        We are doing this because we noticed that the numbers inflates our db
+        This will filter out pages like 35/269
+        """
+        returnList = []
+        for word in lemmaList:
+            try:
+                float(word)
+                continue
+            except:
+                returnList.append(word)
+        return returnList
+
+
 
     # Returns a lemmatized sentence
     def lemmatize(self, sentence):
@@ -147,9 +168,7 @@ class Tokenizer:
         if body_unprocessed is None:
             tags_dict["body"] = []
         else:
-            #print(body_unprocessed)
             body_tokenized_list = self.tokenize(body_unprocessed)
-            #print(body_tokenized_list)
 
             tags_dict["body"] = body_tokenized_list  
 
