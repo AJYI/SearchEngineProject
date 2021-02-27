@@ -71,7 +71,7 @@ class Tokenizer:
         """
 
         # We initailize self.stop_words so we don't create it over and over again :)
-        if word in self.stopSet:
+        if word in self.stopSet: 
             return True
         else:
             return False

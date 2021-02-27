@@ -1,14 +1,26 @@
-from nltk.util import pr
-from tokenizer import Tokenizer
-from spimi import Spimi
-from bs4 import BeautifulSoup
-from collections import Counter
-import os
-import lxml.html
-import re
-import numpy as np
+# from nltk.util import pr
+# from tokenizer import Tokenizer
+# from spimi import Spimi
+# from bs4 import BeautifulSoup
+# from collections import Counter
+# import os
+# import lxml.html
+# import re
+# import numpy as np
+
+import spacy
+nlp = spacy.load('en_core_web_sm') 
+
+word = "I think you are missing the parts where you are using the lemmatized library. this is given alice alex "
+doc = nlp(word)
+
+for token in doc:
+    print(token, token.lemma_)
 
 
+
+
+"""
 # 0/5 has only h1
 # 0/6 has more than h1
 htmlFile = os.path.join('WEBPAGES_RAW/', '0/6')
@@ -44,3 +56,4 @@ if os.path.isfile(htmlFile):
 
 def getIDF(total_no_document, no_doc_with_term):
     idf = 1 + np.log(total_no_document/no_doc_with_term)
+"""
