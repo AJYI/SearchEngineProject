@@ -5,6 +5,7 @@ from collections import Counter
 import pattern
 from nltk.stem import WordNetLemmatizer
 import re
+import datetime
 
 
 class Tokenizer:
@@ -73,7 +74,13 @@ class Tokenizer:
                 filteredList.append(word)
                 continue
 
-            if not word.isalnum() or not word.isascii():
+            # Checks the dates01
+            elif self.checkNumberedDates(word) is True:
+                filteredList.append(word)
+                continue
+
+            # mainly when links are passed into the string
+            elif not word.isalnum() or not word.isascii():
                 processedWord = ""
                 for i in range(len(word)):
                     try:
@@ -86,6 +93,7 @@ class Tokenizer:
                 filteredList.append(processedWord)
             else:
                 filteredList.append(word)
+        #print(f"tokenizedBad{filteredList}")
         return filteredList
 
 
@@ -95,6 +103,23 @@ class Tokenizer:
         time = re.compile(r'^(([01]\d|2[0-3]):([0-5]\d)|24:00)$')
         return bool(time.match(word))
          
+    
+    def checkNumberedDates(self, word):
+        """
+        https://www.tutorialspoint.com/python/time_strptime.htm
+        https://stackoverflow.com/questions/23581128/how-to-format-date-string-via-multiple-formats-in-python
+        This will check whether the string word is in the format of a date(numbers only) example 1/1/2020
+        We will use multiple format
+        # Trying different formats
+        """
+        
+        for formats in ("%d-%b-%Y", "%m-%d-%Y", "%m-%d-%y", "%m/%d/%Y", "%m/%d/%y", "%m.%d.%y, %m.%d.%Y"):
+            try:
+                datetime.datetime.strptime(word,formats)
+                return True
+            except:
+                pass
+        return False
 
 
     # Returns a lemmatized sentence
@@ -110,6 +135,7 @@ class Tokenizer:
         :param word
         :return: True if the word is found in the stop word set / False if the word is not found in the stop word set
         """
+        #print(word)
 
         # We initailize self.stop_words so we don't create it over and over again :)
         if word in self.stopSet:
