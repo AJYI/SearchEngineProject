@@ -17,7 +17,7 @@ class Index:
         docs = 0
 
         # FOR DEBUGGING PURPOSES
-        counter = 0
+        # counter = 0
 
         #############################################################################
         # PHASE 1: We create the text file that will have the data for inverted index
@@ -39,9 +39,9 @@ class Index:
         for urlKey in urlKey_list:
 
             # FOR DEBUGGING PURPOSES
-            if (counter > 100):
-                break
-            counter += 1
+            # if (counter >= 1000):
+            #     break
+            # counter += 1
 
             # get HTML file's path
             htmlFile = os.path.join(basepath, urlKey)
@@ -80,6 +80,7 @@ class Index:
         
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         #mongoDataBase.write_to_database(docs)
 =======
         mongoDataBase.write_to_database(docs)
@@ -87,3 +88,6 @@ class Index:
 =======
         #mongoDataBase.write_to_database(docs)
 >>>>>>> 5c05d9326323c90fcc41ceb327361682749cb8cb
+=======
+        mongoDataBase.write_to_database(docs)
+>>>>>>> 02ede2b59f79b1f1e0ffe3a7ea8134c088cb302a
