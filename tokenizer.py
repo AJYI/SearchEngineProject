@@ -93,7 +93,7 @@ class Tokenizer:
                 filteredList.append(processedWord)
             else:
                 filteredList.append(word)
-        #print(f"tokenizedBad{filteredList}")
+
         return filteredList
 
 

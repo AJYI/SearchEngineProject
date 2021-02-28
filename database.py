@@ -37,12 +37,8 @@ class Database:
         Param : docs is the total docs that the class index has gathered from iterating through the JSON File
 
         This function has two phases:
-        (1) Creates the database from the Cache file(s) and only keeps track of the keys and the number of times(total) they are found within those cache files
-        Reasoning for this is because we need that value BEFORE we calculate the tf-idf score
-        (2) Reiterates through the Cache file to update the database. Since we didn't update anything but the key and total in the first phase, we now update the whole
-        database with the relevant information. While doing this, we will calculate the tf-idf score
-
-        Implications: Will essentially be O(2n) = O(n) and repeat of code
+        (1) Uses the txt file in cache to get the total amount a key has been seen. Results would be put into total_dict. This will be necessary for the idf calculation.
+        (2) Creates the database while looking through the total_dict to calculate the tf-idf score and insert the values associated with the keys.
         """
 
 
@@ -52,6 +48,8 @@ class Database:
         iterFiles = os_sorted(Path('Cache/').iterdir())
 
         # Phase 1
+        total_dict = {}
+
         print("\n==========================")
         print("Initializing the keys")
         print("==========================\n")
@@ -67,32 +65,14 @@ class Database:
                     # This will convert the "Stringed" list into an actual list
                     db_list = eval(line)
 
-                    # The first entry of the list is always the key
                     key = db_list[0]
 
-                    # If the key starts with a numeric value then we put it into the num db
-                    collection = self.db["Num"]
-                    if key[0].isnumeric():
-                        collection = self.db["Num"]
-
-                    # If the key does not start with a numeric value(alphabets, then we put in into its corresponding char db)
+                    # Checking if key is in dict
+                    if key in total_dict:
+                        total_dict[key] += 1
                     else:
-                        collection = self.db[key[0]]
+                        total_dict[key] = 1
 
-                    """
-                    Code will be commented out just incase we need for later.
-                    """
-                    # This checks whether the key exists in the database
-                    # Source for this code
-                    # https://stackoverflow.com/questions/25163658/mongodb-return-true-if-document-exists
-                    if collection.count_documents({'_id': key}, limit=1) != 0:
-                        collection.update({"_id": db_list[0]}, {"$inc": {"total": 1}})
-                        continue
-                    else:
-                        # Inputs the key into the database if the key doesn't exist
-                        post = {"_id": db_list[0], "total": 1, "doc_info": []}
-                        collection.insert_one(post)
-                        continue
 
         # Phase 2
         print("\n==========================")
@@ -113,16 +93,21 @@ class Database:
                         collection = self.db[key[0]]
 
                     """
-                    This code will find the key id and will extract the total from the database entry
+                    This code will find the get the value associated to the key of total_dict
                     Then it will do the tfidf calculations and add the rest of the information into the database by updating the array entry
                     """
-                    collDict = collection.find_one({"_id": key})
-                    tot = collDict['total']
+                    tot = total_dict[key]
                     tfidf = db_list[3][5] * (1 + math.log10(docs/tot))
 
-                    collection.update({"_id": db_list[0]}, {'$push': {
+                    if collection.count_documents({'_id': key}, limit=1) != 0:
+                        collection.update({"_id": db_list[0]}, {'$push': {
                         "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf-idf': tfidf}}})
-                    continue
+                        continue
+                    else:
+                        # Inputs the key into the database if the key doesn't exist
+                        post = {"_id": db_list[0], "total": 1, "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf-idf': tfidf}]}
+                        collection.insert_one(post)
+                        continue
 
 
             # Will remove the file after it's content has been created within the database
