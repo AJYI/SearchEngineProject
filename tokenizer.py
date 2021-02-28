@@ -3,7 +3,8 @@ from textblob import TextBlob, blob
 from bs4 import BeautifulSoup
 from collections import Counter
 import pattern
-from nltk.stem import WordNetLemmatizer 
+from nltk.stem import WordNetLemmatizer
+import re
 
 
 class Tokenizer:
@@ -26,21 +27,10 @@ class Tokenizer:
             lemmaSentence = self.lemmatize(sentence)
             lemmaList = lemmaSentence.split()
             lemmaListNoNum = self.checkForRawNumbers(lemmaList)
-            lemmaSentence = " ".join(lemmaListNoNum)
+            lemmaListTokenized = self.tokenizeBadCharacters(lemmaListNoNum)
+            lemmaSentence = " ".join(lemmaListTokenized)
 
-            processedSentence = ""
-            
-            for i in range(len(lemmaSentence)):
-                try:
-                    if not lemmaSentence[i].isalnum() or not lemmaSentence[i].isascii():
-                        processedSentence += " "
-                    else:
-                        processedSentence += lemmaSentence[i]
-                except:
-                    processedSentence += " "
-
-
-            blob = TextBlob(processedSentence)
+            blob = TextBlob(lemmaSentence)
             tokenizedList = list(blob.words)
             
             # Checks for stop words, if stop words exists, it is removed
@@ -58,7 +48,7 @@ class Tokenizer:
     def checkForRawNumbers(self, lemmaList):
         """
         This function will check if raw number exist within the html page
-        We are doing this because we noticed that the numbers inflates our db
+        We are doing this because we noticed that the numbers inflates our db size immensely
         This will filter out pages like 35/269
         """
         returnList = []
@@ -70,6 +60,41 @@ class Tokenizer:
                 returnList.append(word)
         return returnList
 
+    
+    def tokenizeBadCharacters(self, lemmaListNoNum):
+        """
+        This function will tokenize bad characters
+        bad characters = anything with comma, dashes, underscore, etc
+        """
+        filteredList = []
+        for word in lemmaListNoNum:
+            # Checks whether the word is a time
+            if self.checkTimeWord(word) is True:
+                filteredList.append(word)
+                continue
+
+            if not word.isalnum() or not word.isascii():
+                processedWord = ""
+                for i in range(len(word)):
+                    try:
+                        if not word[i].isalnum() or not word[i].isascii():
+                            processedWord += " "
+                        else:
+                            processedWord += word[i]
+                    except:
+                        processedWord += " "
+                filteredList.append(processedWord)
+            else:
+                filteredList.append(word)
+        return filteredList
+
+
+    def checkTimeWord(self, word):
+        # Source: https://stackoverflow.com/questions/1322464/python-time-format-check
+        # This function checks whether the string word is in a format of a time
+        time = re.compile(r'^(([01]\d|2[0-3]):([0-5]\d)|24:00)$')
+        return bool(time.match(word))
+         
 
 
     # Returns a lemmatized sentence
