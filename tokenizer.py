@@ -2,6 +2,7 @@ from textblob import Word
 from textblob import TextBlob, blob
 from bs4 import BeautifulSoup
 from collections import Counter
+import pattern
 from nltk.stem import WordNetLemmatizer 
 
 
@@ -27,17 +28,17 @@ class Tokenizer:
             lemmaListNoNum = self.checkForRawNumbers(lemmaList)
             lemmaSentence = " ".join(lemmaListNoNum)
 
-
             processedSentence = ""
-            if not lemmaSentence.isalnum() or not lemmaSentence.isascii():
-                for i in range(len(sentence)):
-                    try:
-                        if not lemmaSentence[i].isalnum() or not lemmaSentence[i].isascii():
-                            processedSentence += " "
-                        else:
-                            processedSentence += lemmaSentence[i]
-                    except:
+            
+            for i in range(len(lemmaSentence)):
+                try:
+                    if not lemmaSentence[i].isalnum() or not lemmaSentence[i].isascii():
                         processedSentence += " "
+                    else:
+                        processedSentence += lemmaSentence[i]
+                except:
+                    processedSentence += " "
+
 
             blob = TextBlob(processedSentence)
             tokenizedList = list(blob.words)
@@ -86,7 +87,7 @@ class Tokenizer:
         """
 
         # We initailize self.stop_words so we don't create it over and over again :)
-        if word in self.stopSet: 
+        if word in self.stopSet:
             return True
         else:
             return False
