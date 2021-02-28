@@ -15,7 +15,7 @@ class Database:
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
-        self.db_name = "CS121DBFinal"
+        self.db_name = "CS121DBz"
         self.db = self.cluster[self.db_name]
 
 
@@ -81,7 +81,19 @@ class Database:
         for file in iterFiles:
             with file.open('r') as f:
                 for line in f:
-  
+                    """
+                    # db_list is in the format of:
+                    db_list[0] = Key
+                    db_list[1] = UniqueIdentifier
+                    db_list[2] = docID(posting)
+                    db_list[3][0] = total
+                    db_list[3][1] = title
+                    db_list[3][2] = header
+                    db_list[3][3] = bold
+                    db_list[3][4] = body
+                    db_list[3][5] = tf score
+                    """
+
                     db_list = eval(line)
 
                     key = db_list[0]
@@ -96,8 +108,9 @@ class Database:
                     This code will find the get the value associated to the key of total_dict
                     Then it will do the tfidf calculations and add the rest of the information into the database by updating the array entry
                     """
+                    # is the class variable for the key and value pair of the txt file
                     tot = total_dict[key]
-                    tfidf = db_list[3][5] * (1 + math.log10(docs/tot))
+                    tfidf = db_list[3][5] * (math.log10(docs/tot))
 
                     if collection.count_documents({'_id': key}, limit=1) != 0:
                         collection.update({"_id": db_list[0]}, {'$push': {
@@ -111,4 +124,4 @@ class Database:
 
 
             # Will remove the file after it's content has been created within the database
-            os.remove(file)
+            #os.remove(file)
