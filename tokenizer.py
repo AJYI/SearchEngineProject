@@ -2,7 +2,6 @@ from textblob import Word
 from textblob import TextBlob, blob
 from bs4 import BeautifulSoup
 from collections import Counter
-import pattern
 from nltk.stem import WordNetLemmatizer 
 
 
