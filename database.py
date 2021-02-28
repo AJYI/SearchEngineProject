@@ -15,7 +15,7 @@ class Database:
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
-        self.db_name = "CS121DBTester"
+        self.db_name = "CS121DBFinal"
         self.db = self.cluster[self.db_name]
 
 
@@ -105,7 +105,7 @@ class Database:
                         continue
                     else:
                         # Inputs the key into the database if the key doesn't exist
-                        post = {"_id": db_list[0], "total": 1, "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf-idf': tfidf}]}
+                        post = {"_id": db_list[0], "total": total_dict[key], "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf-idf': tfidf}]}
                         collection.insert_one(post)
                         continue
 
