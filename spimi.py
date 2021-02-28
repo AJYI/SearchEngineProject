@@ -6,6 +6,7 @@ from llist import dllist
 from LLAttribute import LLAttribute
 import shutil
 import gc
+import math
 
 
 # We will be creating a spimi index
@@ -167,12 +168,12 @@ class Spimi:
         # Initializing an empty dict
         count_dict = {}
         # Total words in the tokenized_dict
-        total_words = 0
+        #total_words = 0
 
         # for the count_dict_title, keys in this first entry will ALWAYS BE unique
         for i in count_dict_title:
             count_dict[i] = [count_dict_title[i], count_dict_title[i], 0, 0, 0, 0]
-            total_words += count_dict_title[i]
+            #total_words += count_dict_title[i]
         
         # for header
         # for the count_dict_headers, keys might already exist
@@ -181,11 +182,11 @@ class Spimi:
             if i in count_dict:
                 count_dict[i][0] = count_dict[i][0] + count_dict_header[i]
                 count_dict[i][2] = count_dict_header[i]
-                total_words += count_dict_header[i]
+                #total_words += count_dict_header[i]
             # if it doesnt exist add it to the dictionary
             else:
                 count_dict[i] = [count_dict_header[i], 0, count_dict_header[i], 0, 0, 0]
-                total_words += count_dict_header[i]
+                #total_words += count_dict_header[i]
         
         # for bold
         # for the count_dict_bold, keys might already exist
@@ -194,11 +195,11 @@ class Spimi:
             if i in count_dict:
                 count_dict[i][0] = count_dict[i][0] + count_dict_bold[i]
                 count_dict[i][3] = count_dict_bold[i]
-                total_words += count_dict_bold[i]
+                #total_words += count_dict_bold[i]
             # if it doesnt exist add it to the dictionary
             else:
                 count_dict[i] = [count_dict_header[i], 0, 0, count_dict_bold[i], 0, 0]
-                total_words += count_dict_bold[i]
+                #total_words += count_dict_bold[i]
         
         # for body
         # for the count_dict_body, keys might already exist
@@ -207,14 +208,15 @@ class Spimi:
             if i in count_dict:
                 count_dict[i][0] = count_dict[i][0] + count_dict_body[i]
                 count_dict[i][4] = count_dict_body[i]
-                total_words += count_dict_body[i]
+                #total_words += count_dict_body[i]
             # if it doesnt exist add it to the dictionary
             else:
                 count_dict[i] = [count_dict_body[i], 0, 0, 0, count_dict_body[i], 0]
-                total_words += count_dict_body[i]
+                #total_words += count_dict_body[i]
         
         # Calculates the TF-SCORE
         for i in count_dict:
-            count_dict[i][5] = count_dict[i][0] / total_words
+            if count_dict[i] != 0:
+                count_dict[i][5] = 1 + math.log10(count_dict[i][0])
 
         return count_dict
