@@ -1,14 +1,42 @@
-# from nltk.util import pr
-# from tokenizer import Tokenizer
-# from spimi import Spimi
-# from bs4 import BeautifulSoup
-# from collections import Counter
-# import os
-# import lxml.html
-# import re
-# import numpy as np
+from nltk.util import pr
+from tokenizer import Tokenizer
+from spimi import Spimi
+from bs4 import BeautifulSoup
+from collections import Counter
+import os
+import lxml.html
+import re
+import numpy as np
 
 ## how to retrive data from mongodb
+
+import pymongo
+# import pprint
+# import json
+# import warnings
+from pymongo import MongoClient
+
+
+def serach_in_db(db, text):
+    frist_letter = text[0]
+    return db[frist_letter].find_one()
+
+myclient = MongoClient("mongodb://localhost:27017/")
+db = myclient['CS121_20']
+
+print(db.list_collection_names())
+
+# enter = input("Enter to serach : ")
+enter = "alice;"
+
+# print(db.list_collection_names())
+# print(serach_in_db)
+# print(type(enter[0]))
+a  = enter[0]
+print(db[a].find_one())
+print(serach_in_db(db,enter))
+
+
 
 
 """
