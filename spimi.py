@@ -220,3 +220,81 @@ class Spimi:
                 count_dict[i][5] = 1 + math.log10(count_dict[i][0])
 
         return count_dict
+
+    # # Need to better functionalize this
+    # def computeWordFrequencies(self, token_dict):
+    #     """
+    #     We will use the token dict that that contains will data in the form of
+    #     ['title':[], 'header':[], 'bold':[], 'body':[]]
+    #     then we will create a dictionary for each of the keys and use it to create the 
+    #     new dict (count_dict)
+
+    #     count_dict will be in the form of:
+    #     ['someKey': [total(titleTotal + headerTotal + boldTotal + bodyTotal), titleTotal, headerTotal, boldTotal, BodyTotal, TF_Score]]
+
+    #     Purpose: counts the number of occurrences of each token in the token list (List<Token> tokens).
+    #     Return: a sorted dictionary of counted words, number of titles, number of headers, number of bolds, and number of body
+    #     Essentially [Value_Total, title_total, header_total, bold_total, body_total]
+    #     """
+    #     count_dict_title = Counter(token_dict['title'])
+    #     count_dict_header = Counter(token_dict['header'])
+    #     count_dict_bold = Counter(token_dict['bold'])
+    #     count_dict_body = Counter(token_dict['body'])
+        
+    #     # Initializing an empty dict
+    #     count_dict = {}
+    #     # Total words in the tokenized_dict
+    #     #total_words = 0
+
+    #     # for the count_dict_title, keys in this first entry will ALWAYS BE unique
+    #     for i in count_dict_title:
+    #         count_dict[i] = [count_dict_title[i], count_dict_title[i], 0, 0, 0, 0]
+    #         #total_words += count_dict_title[i]
+        
+    #     # for header
+    #     # for the count_dict_headers, keys might already exist
+    #     for i in count_dict_header:
+    #         # if the key exists in the dictionary
+    #         if i in count_dict:
+    #             count_dict[i][0] = count_dict[i][0] + count_dict_header[i]
+    #             count_dict[i][2] = count_dict_header[i]
+    #             #total_words += count_dict_header[i]
+    #         # if it doesnt exist add it to the dictionary
+    #         else:
+    #             count_dict[i] = [count_dict_header[i], 0, count_dict_header[i], 0, 0, 0]
+    #             #total_words += count_dict_header[i]
+        
+    #     # for bold
+    #     # for the count_dict_bold, keys might already exist
+    #     for i in count_dict_bold:
+    #         # if the key exists in the dictionary
+    #         if i in count_dict:
+    #             count_dict[i][0] = count_dict[i][0] + count_dict_bold[i]
+    #             count_dict[i][3] = count_dict_bold[i]
+    #             #total_words += count_dict_bold[i]
+    #         # if it doesnt exist add it to the dictionary
+    #         else:
+    #             count_dict[i] = [count_dict_header[i], 0, 0, count_dict_bold[i], 0, 0]
+    #             #total_words += count_dict_bold[i]
+        
+    #     # for body
+    #     # for the count_dict_body, keys might already exist
+    #     for i in count_dict_body:
+    #         # if the key exists in the dictionary
+    #         if i in count_dict:
+    #             count_dict[i][0] = count_dict[i][0] + count_dict_body[i]
+    #             count_dict[i][4] = count_dict_body[i]
+    #             #total_words += count_dict_body[i]
+    #         # if it doesnt exist add it to the dictionary
+    #         else:
+    #             count_dict[i] = [count_dict_body[i], 0, 0, 0, count_dict_body[i], 0]
+    #             #total_words += count_dict_body[i]
+        
+    #     # Calculates the TF-SCORE
+    #     for i in count_dict:
+    #         if count_dict[i] != 0:
+    #             count_dict[i][5] = 1 + math.log10(count_dict[i][0])
+
+    #     return count_dict
+
+    

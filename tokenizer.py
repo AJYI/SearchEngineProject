@@ -261,9 +261,6 @@ class Tokenizer:
         return tags_dict
 
 
-    # new version : uses library
-    # take in : urlStr = string of url
-    # reutnr : list 
     def parseURL(self, urlStr):
         total_list = []
 

@@ -39,10 +39,9 @@ class Index:
         for urlKey in urlKey_list:
 
             # FOR DEBUGGING PURPOSES
-
-            # if (counter >= 500):
-            #     break
-            # counter += 1
+            if (counter >= 100):
+                break
+            counter += 1
 
             # get HTML file's path
             htmlFile = os.path.join(basepath, urlKey)
