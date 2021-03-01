@@ -261,9 +261,6 @@ class Tokenizer:
         return tags_dict
 
 
-    # new version : uses library
-    # take in : urlStr = string of url
-    # reutnr : list 
     def parseURL(self, urlStr):
         total_list = []
 
@@ -273,7 +270,7 @@ class Tokenizer:
         total_list.append(netlock)
 
         netlock_re = re.split('\W+', netlock)
-        total_list = total_list + netlock_re
+        total_list = total_list + netlock_re       
 
         # split the path
         path = parse_url[2]
@@ -285,39 +282,3 @@ class Tokenizer:
             if path[0] != '':
                 total_list = total_list + path
         return total_list
-
-    # def parseURL(self, urlStr):
-    #     try:
-    #         tokenList = []
-    #         splitURL = urlStr.split('/')
-    #         currWord = ""
-
-    #         for word in splitURL:
-    #             for i in word:
-    #                 if i == '?':
-    #                     break
-
-    #                 currWord += i
-
-    #             # if we have a http or empty str, don't append to token list
-    #             if ("http" in currWord) or (currWord == ""):
-    #                 pass
-    #                 print("Hello: stage 1 ")
-    #             # if we have a url link, then get subsections of it
-    #             elif "." in currWord:
-    #                 print("Hello: stage 2 ")
-    #                 tokenList.append(currWord)
-    #                 currTokens = currWord.split(".")
-    #                 currTokens.remove("com")
-    #                 tokenList.extend(currTokens)
-    #             else:
-    #                 print("Hello: stage 3 ")
-    #                 tokenList.append(currWord)
-
-    #             currWord = ""
-
-    #         return tokenList
-    #     except:
-    #         print("problem In faustina")
-            
-    #         return []
