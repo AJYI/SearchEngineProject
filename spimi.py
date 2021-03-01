@@ -216,7 +216,7 @@ class Spimi:
         
         # Calculates the TF-SCORE
         for i in count_dict:
-            if count_dict[i] != 0:
+            if count_dict[i][0] != 0:
                 count_dict[i][5] = 1 + math.log10(count_dict[i][0])
 
         return count_dict

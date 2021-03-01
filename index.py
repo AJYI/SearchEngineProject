@@ -39,7 +39,7 @@ class Index:
         for urlKey in urlKey_list:
 
             # FOR DEBUGGING PURPOSES
-            if (counter >= 10):
+            if (counter >= 30):
                 break
             counter += 1
 

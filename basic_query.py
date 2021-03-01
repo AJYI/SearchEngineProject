@@ -17,6 +17,7 @@ class Query:
         """
         while True:
             query = input("Enter a query: ")
+            query = query.lower()
             if query == "QUIT":
                 break
             else:
@@ -54,8 +55,9 @@ class Query:
         Essentially a toString function to print out the resultsList
         The resultsList is a list of all the links that will be printed
         """
-        number = 0
-        for i in resultsList:
-            print(f"{number}: {i}")
-            number+=1
-        pass
+        print(resultsList)
+        # number = 0
+        # for i in resultsList:
+        #     print(f"{number}: {i}")
+        #     number+=1
+        # pass
