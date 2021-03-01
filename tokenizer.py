@@ -2,10 +2,13 @@ from textblob import Word
 from textblob import TextBlob, blob
 from bs4 import BeautifulSoup
 from collections import Counter
-import pattern
 from nltk.stem import WordNetLemmatizer
 import re
 import datetime
+import spacy	
+spacy_nlp = spacy.load('en_core_web_sm')
+from urllib.parse import urlparse
+
 
 
 class Tokenizer:
@@ -15,6 +18,15 @@ class Tokenizer:
 
     def __init__(self):
         self.stopSet = set(line.strip() for line in open('stopWords.txt'))
+
+        # Source: https://stackoverflow.com/questions/7160737/how-to-validate-a-url-in-python-malformed-or-not
+        self.regex = re.compile(
+        r'^(?:http|ftp)s?://'  # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 
     def tokenize(self, sentence):
@@ -26,6 +38,7 @@ class Tokenizer:
         fullTokenizedList = []
         try:
             lemmaSentence = self.lemmatize(sentence)
+            #print(lemmaSentence)
             lemmaList = lemmaSentence.split()
             lemmaListNoNum = self.checkForRawNumbers(lemmaList)
             lemmaListTokenized = self.tokenizeBadCharacters(lemmaListNoNum)
@@ -67,34 +80,44 @@ class Tokenizer:
         This function will tokenize bad characters
         bad characters = anything with comma, dashes, underscore, etc
         """
-        filteredList = []
-        for word in lemmaListNoNum:
-            # Checks whether the word is a time
-            if self.checkTimeWord(word) is True:
-                filteredList.append(word)
-                continue
+        #print(lemmaListNoNum)
+        try:
+            filteredList = []
+            for word in lemmaListNoNum:
+                # Checks whether the word is a time 01:00 01:15
+                if self.checkTimeWord(word) is True:
+                    filteredList.append(word)
+                    continue
 
-            # Checks the dates01
-            elif self.checkNumberedDates(word) is True:
-                filteredList.append(word)
-                continue
+                # Checks the dates
+                elif self.checkNumberedDates(word) is True:
+                    filteredList.append(word)
+                    continue
 
-            # mainly when links are passed into the string
-            elif not word.isalnum() or not word.isascii():
-                processedWord = ""
-                for i in range(len(word)):
-                    try:
-                        if not word[i].isalnum() or not word[i].isascii():
+                # Checks URL
+                elif re.match(self.regex, word) is not None:
+                    filteredList.extend(self.parseURL(word))
+                    continue
+
+                # mainly when links are passed into the string
+                elif not word.isalnum() or not word.isascii():
+                    processedWord = ""
+                    for i in range(len(word)):
+                        try:
+                            if not word[i].isalnum() or not word[i].isascii():
+                                processedWord += " "
+                            else:
+                                processedWord += word[i]
+                        except:
                             processedWord += " "
-                        else:
-                            processedWord += word[i]
-                    except:
-                        processedWord += " "
-                filteredList.append(processedWord)
-            else:
-                filteredList.append(word)
+                    filteredList.append(processedWord)
+                else:
+                    filteredList.append(word)
 
-        return filteredList
+            return filteredList
+        except Exception as e:
+            print(e)
+            return []
 
 
     def checkTimeWord(self, word):
@@ -124,9 +147,14 @@ class Tokenizer:
 
     # Returns a lemmatized sentence
     def lemmatize(self, sentence):
-        # SOURCE: https://www.machinelearningplus.com/nlp/lemmatization-examples-python/
-        tmpSentence = TextBlob(sentence)
-        return " ".join([w.lemmatize() for w in tmpSentence.words])
+        # now using spacy
+        try:
+            doc = spacy_nlp(sentence)
+            sent = " ".join([token.lemma_ for token in doc]).lower()
+            sent = sent.split()
+            return ' '.join(sent)
+        except:
+            print("Error in lemmatize")
 
 
     def checkStopWord(self, word):
@@ -231,3 +259,65 @@ class Tokenizer:
             tags_dict["body"] = body_tokenized_list  
 
         return tags_dict
+
+
+    # new version : uses library
+    # take in : urlStr = string of url
+    # reutnr : list 
+    def parseURL(self, urlStr):
+        total_list = []
+
+        parse_url = urlparse(urlStr)
+        netlock = parse_url[1]
+        # add the netlock
+        total_list.append(netlock)
+
+        netlock_re = re.split('\W+', netlock)
+        total_list = total_list + netlock_re
+
+        # split the path
+        path = parse_url[2]
+        path_split = parse_url[2].split('/')
+
+        for path in path_split:
+            path = re.split('\W+', path)
+            # total_list = total_list + path
+            if path[0] != '':
+                total_list = total_list + path
+        return total_list
+
+    # def parseURL(self, urlStr):
+    #     try:
+    #         tokenList = []
+    #         splitURL = urlStr.split('/')
+    #         currWord = ""
+
+    #         for word in splitURL:
+    #             for i in word:
+    #                 if i == '?':
+    #                     break
+
+    #                 currWord += i
+
+    #             # if we have a http or empty str, don't append to token list
+    #             if ("http" in currWord) or (currWord == ""):
+    #                 pass
+    #                 print("Hello: stage 1 ")
+    #             # if we have a url link, then get subsections of it
+    #             elif "." in currWord:
+    #                 print("Hello: stage 2 ")
+    #                 tokenList.append(currWord)
+    #                 currTokens = currWord.split(".")
+    #                 currTokens.remove("com")
+    #                 tokenList.extend(currTokens)
+    #             else:
+    #                 print("Hello: stage 3 ")
+    #                 tokenList.append(currWord)
+
+    #             currWord = ""
+
+    #         return tokenList
+    #     except:
+    #         print("problem In faustina")
+            
+    #         return []

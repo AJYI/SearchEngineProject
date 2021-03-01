@@ -19,9 +19,9 @@ mongo = PyMongo(app)
 def home():
     return render_template('welcome.html')  # render a template
 
-@app.route('/serach<text>')
-def serach(text):
-    post 
+# @app.route('/serach<text>')
+# def serach(text):
+#     continue 
 
 
 

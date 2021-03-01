@@ -15,11 +15,7 @@ class Database:
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
-<<<<<<< HEAD
-        self.db_name = "CS121_20"
-=======
         self.db_name = "CS121DBz"
->>>>>>> def8dd51f569a5701577b019d9640084068a0074
         self.db = self.cluster[self.db_name]
 
 
@@ -128,4 +124,4 @@ class Database:
 
 
             # Will remove the file after it's content has been created within the database
-            #os.remove(file)
+            os.remove(file)
