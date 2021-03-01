@@ -15,15 +15,8 @@ class Database:
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
-<<<<<<< HEAD
         self.db_name = "CS121"
-=======
-<<<<<<< HEAD
-        self.db_name = "CS121_20"
-=======
-        self.db_name = "CS121DBz"
->>>>>>> def8dd51f569a5701577b019d9640084068a0074
->>>>>>> a6ad2924a5d421d36d52a7b8c47fd82d2bfa2876
+
         self.db = self.cluster[self.db_name]
 
 
