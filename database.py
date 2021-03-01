@@ -110,15 +110,17 @@ class Database:
                     """
                     # is the class variable for the key and value pair of the txt file
                     tot = total_dict[key]
-                    tfidf = db_list[3][5] * (math.log10(docs/tot))
+                    #tfidf = db_list[3][5] * (math.log10(docs/tot))
+                    tf = db_list[3][5]
+                    idf = (math.log10(docs/tot))
 
                     if collection.count_documents({'_id': key}, limit=1) != 0:
                         collection.update({"_id": db_list[0]}, {'$push': {
-                        "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf-idf': tfidf}}})
+                        "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf': tf, 'idf': idf}}})
                         continue
                     else:
                         # Inputs the key into the database if the key doesn't exist
-                        post = {"_id": db_list[0], "total": total_dict[key], "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf-idf': tfidf}]}
+                        post = {"_id": db_list[0], "total": total_dict[key], "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf': tf, 'idf': idf}]}
                         collection.insert_one(post)
                         continue
 
