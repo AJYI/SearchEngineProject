@@ -15,7 +15,7 @@ class Database:
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
-        self.db_name = "CS121_20"
+        self.db_name = "CS121Test"
         self.db = self.cluster[self.db_name]
 
 
@@ -73,8 +73,36 @@ class Database:
                     else:
                         total_dict[key] = 1
 
-
         # Phase 2
+        # The keys for the nomalized_dict will be db_list[1]
+        normalized_dict = {}
+
+        print("\n==========================")
+        print("Normalizing")
+        print("==========================\n")
+        for file in iterFiles:
+            with file.open('r') as f:
+                for line in f:
+
+                    db_list = eval(line)
+
+                    key = db_list[0]
+                    uniqueID = db_list[1]
+
+                    # We need these values to do normalization
+                    tot = total_dict[key]
+                    tf = db_list[3][5]
+                    idf = math.log10(docs/tot)
+                    weight = tf * idf
+
+                    # Checking if key is in dict
+                    if uniqueID in normalized_dict:
+                        normalized_dict[uniqueID] += (weight * weight)
+                    else:
+                        normalized_dict[uniqueID] = weight * weight
+
+
+        # Phase 3
         print("\n==========================")
         print("Writing to the database")
         print("==========================\n")
@@ -97,6 +125,7 @@ class Database:
                     db_list = eval(line)
 
                     key = db_list[0]
+                    uniqueID = db_list[1]
 
                     collection = self.db["Num"]
                     if key[0].isnumeric():
@@ -113,14 +142,18 @@ class Database:
                     #tfidf = db_list[3][5] * (math.log10(docs/tot))
                     tf = db_list[3][5]
                     idf = (math.log10(docs/tot))
+                    weight = tf * idf
+                    length = math.sqrt(normalized_dict[uniqueID])
+                    #print(f"{key}: {length}")
+
 
                     if collection.count_documents({'_id': key}, limit=1) != 0:
-                        collection.update({"_id": db_list[0]}, {'$push': {
-                        "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf': tf, 'idf': idf}}})
+                        collection.update({"_id": db_list[0]}, {'$push': { ''
+                        "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'weight': weight, 'normalized': (weight / length)}}})
                         continue
                     else:
                         # Inputs the key into the database if the key doesn't exist
-                        post = {"_id": db_list[0], "total": total_dict[key], "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'tf': tf, 'idf': idf}]}
+                        post = {"_id": db_list[0], "total": total_dict[key], "idf": idf , "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'weight': weight, 'normalized': (weight / length)}]}
                         collection.insert_one(post)
                         continue
 

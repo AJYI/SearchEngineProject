@@ -37,8 +37,8 @@ class Tokenizer:
         # Tokenizes out the punctuations/underscore/and the other stuff
         fullTokenizedList = []
         try:
-            lemmaSentence = self.lemmatize(sentence)
-            #print(lemmaSentence)
+            lemmaSentence = self.lemmatize(sentence.lower())
+
             lemmaList = lemmaSentence.split()
             lemmaListNoNum = self.checkForRawNumbers(lemmaList)
             lemmaListTokenized = self.tokenizeBadCharacters(lemmaListNoNum)
@@ -187,7 +187,7 @@ class Tokenizer:
             print(f"ErrorInHTMLContent: {e}")
             return sentence
         return sentence
-
+        
 
     # process list according to tags
     def soupTagImportance(self, soup):
@@ -198,7 +198,6 @@ class Tokenizer:
         if title is None:
             # From observation, if title doesn't exist, then it's most likely some type of doc file
             # For example observe doc 0/438 or 39/373
-            tags_dict["title"] = []
             tags_dict["title"] = []
             tags_dict['header'] = []
             tags_dict['bold'] = []

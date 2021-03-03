@@ -51,7 +51,7 @@ from bson.objectid import ObjectId
 #     newone = next_document
 
 myclient = MongoClient("mongodb://localhost:27017/")
-db = myclient['CS121_20']
+db = myclient['CS121']
 
 def search_in_db(db, text):
     # return dictionay 
