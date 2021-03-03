@@ -1,4 +1,6 @@
 from tokenizer import Tokenizer
+from database import Database
+
 
 class Query:
     """
