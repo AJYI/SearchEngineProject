@@ -8,14 +8,13 @@ import math
 
 class Database:
 
-
     def __init__(self):
         """
         The constructor
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
-        self.db_name = "CS121Test"
+        self.db_name = "CS121_norm_100"
         self.db = self.cluster[self.db_name]
 
 
@@ -110,6 +109,7 @@ class Database:
             with file.open('r') as f:
                 for line in f:
                     """
+                    docs = total docs
                     # db_list is in the format of:
                     db_list[0] = Key
                     db_list[1] = UniqueIdentifier
@@ -121,6 +121,14 @@ class Database:
                     db_list[3][4] = body
                     db_list[3][5] = tf score
                     """
+                    # Meta Tags Multiplier
+                    titleW = 0.5 * db_list[3][1]
+                    headerW = 0.3 * db_list[3][2]
+                    boldW = 0.2 * db_list[3][3]
+                    bodyW = 0.1 * db_list[3][4]
+                    tagScore = titleW + headerW + boldW + bodyW
+
+
 
                     db_list = eval(line)
 
@@ -139,7 +147,6 @@ class Database:
                     """
                     # is the class variable for the key and value pair of the txt file
                     tot = total_dict[key]
-                    #tfidf = db_list[3][5] * (math.log10(docs/tot))
                     tf = db_list[3][5]
                     idf = (math.log10(docs/tot))
                     weight = tf * idf
@@ -148,15 +155,14 @@ class Database:
 
 
                     if collection.count_documents({'_id': key}, limit=1) != 0:
-                        collection.update({"_id": db_list[0]}, {'$push': { ''
-                        "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'weight': weight, 'normalized': (weight / length)}}})
+                        collection.update({"_id": db_list[0]}, {'$push': {
+                        "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'tagScore':tagScore, 'weight': weight, 'normalized': (weight / length)}}})
                         continue
                     else:
                         # Inputs the key into the database if the key doesn't exist
-                        post = {"_id": db_list[0], "total": total_dict[key], "idf": idf , "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'weight': weight, 'normalized': (weight / length)}]}
+                        post = {"_id": db_list[0], "total": total_dict[key], "idf": idf, "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'tagScore':tagScore, 'weight': weight, 'normalized': (weight / length)}]}
                         collection.insert_one(post)
                         continue
-
 
             # Will remove the file after it's content has been created within the database
             os.remove(file)

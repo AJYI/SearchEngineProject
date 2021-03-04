@@ -8,4 +8,5 @@ if __name__ == "__main__":
 
     # Component 2 - Search and Retrieve
     query = Query()
-    #query.initializeQuery()
+    # query.initializeQuery()
+
