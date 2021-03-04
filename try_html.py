@@ -1,5 +1,4 @@
 from nltk.util import pr
-from stanfordnlp.pipeline.core import Pipeline
 from tokenizer import Tokenizer
 from spimi import Spimi
 from bs4 import BeautifulSoup
@@ -12,12 +11,13 @@ from urllib.parse import urlparse
 import spacy	
 spacy_nlp = spacy.load('en_core_web_sm')
 import numpy as np
+import math
 
-## lemitize
-def lemmatize(sentence):
-    # now using spacy
-    doc = spacy_nlp(sentence)
-    return " ".join([token.lemma_ for token in doc])
+# ## lemitize
+# def lemmatize(sentence):
+#     # now using spacy
+#     doc = spacy_nlp(sentence)
+#     return " ".join([token.lemma_ for token in doc])
 
 import pymongo
 # import pprint
@@ -26,6 +26,7 @@ import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
+tokenObj = Tokenizer()
 ### working getting information on DB 
 
 """
@@ -39,19 +40,8 @@ from bson.objectid import ObjectId
 
 """
 
-# extract all the document 
-
-# if one query: 
-#     search_in_db one time
-# else: # more than 1
-#     query_tfidf_add # forloop
-#     oldone + newone
-#     #example:
-#     oldone = (doc1 + doc2) 
-#     newone = next_document
-
 myclient = MongoClient("mongodb://localhost:27017/")
-db = myclient['CS121_20']
+db = myclient['CS121_1000']
 
 def search_in_db(db, text):
     # return dictionay 
@@ -63,10 +53,31 @@ def search_in_db(db, text):
     alpha_db = db[first_letter]
     doc_info = alpha_db.find_one({"_id":text})['doc_info']
 
-    # getting all the doc info 
+    # query length square root of total tfidf
+    query_len = 0
+    tf_idf = 0
+    # query_vector = []
+
+    # getting all the doc info
+    print("for loop in doc info")
     for doc in doc_info:
+        # db_dict[doc['uniqueID']] = doc['tf']*doc['idf']
+        
+        # query_len += float((doc['tf']*doc['idf'])**2)
+        # # query_vector.append(doc['tf']*doc['idf'])
+        # # print("query_vector: ", query_vector)
+
+        # # query_len = np.power((doc['tf']*doc['idf']),2)
         db_dict[doc['uniqueID']] = doc['tf-idf']
-        # print(doc['uniqueID'], doc['tf-idf'])
+        print(doc['uniqueID'], doc['tf-idf'])
+    query_len = math.sqrt(query_len)
+    print("query_len :", query_len)
+    # query_vector = np.true_divide(query_vector, query_len)
+    # print("query_vector :", query_vector)
+
+    for key in db_dict:
+        db_dict[key] = db_dict[key]/query_len
+
     return db_dict
 
 
@@ -90,10 +101,9 @@ def query_tfidf_add(db_dict_1, db_dict_2):
 # for loop part
 # takes in - userinput : user input
 def combine_query(db, userinput):
-    # tokenObj = Tokenizer()
     # this will tokenize  + lemma
-    # input_list = tokenObj.tokenize(tokenObj)
-    input_list = userinput.split(' ')
+    input_list = tokenObj.tokenize(userinput)
+    # input_list = userinput.split(' ')
     print(input_list)
     size = len(input_list)  # how many words in query
 
@@ -115,6 +125,20 @@ def combine_query(db, userinput):
 
 # tokenObj = Tokenizer()
 
+enter1 = "cut" # frequency
+enter2 = "career"
+enter3 = "completeanns"
+
+doc_normalized_dict = search_in_db(db, enter1)
+print("\n\ntfidf query")
+for key in doc_normalized_dict:
+    print(key, doc_normalized_dict[key])
+query_vector = doc_normalized_dict.values()
+print("query_vector: ", list(query_vector))
+
+
+
+"""
 enter = input("Enter to search : ")
 
 ## 1. Represent the query as a weighted tf-idf vector.
@@ -129,54 +153,11 @@ for key in tfidf_query:
 # <tfidf, tfidf, tfidf, tfidf>
 tfidf_vector = np.array(tfidf_query.values() )
 print(tfidf_vector)
+"""
 
 ## 3. Compute the cosine similarity score for the query vector. and each document vector.
 
 
-"""
-# enter = input("Enter to search : ")
-enter = "irvine"
-enter_list = tokenObj.tokenize(enter)
-# print("Entered list : ", enter_list)
-print("\ndatabase: ", enter)
-db_dict_1 = search_in_db(db, enter)
-# for key in db_dict_1:
-#     print(key, db_dict_1[key])
-
-list_dict.append(db_dict_1)
-
-enter = "university"
-enter_list = tokenObj.tokenize(enter)
-# print("Entered list : ", enter_list)
-print("\ndatabase: ", enter)
-db_dict_2 = search_in_db(db, enter)
-# for key in db_dict_2:
-#     print(key, db_dict_2[key])
-
-list_dict.append(db_dict_2)
-
-# print(list_dict)
-num = 1
-# for list in list_dict:
-#     print("list", num)
-#     print(list)
-#     num+=1
-
-print(db_dict_1.keys())
-print(db_dict_2.keys())
-list_keys = set(db_dict_1.keys()) & set(db_dict_2.keys())
-
-print(list_keys)
-
-tfidf_query = {}
-
-if (len(db_dict_1) < len(db_dict_2)):
-    for key in list_keys:
-        tfidf_query[key] = db_dict_1[key] + db_dict_2[key]
-else:
-    for key in list_keys:
-        tfidf_query[key] = db_dict_2[key] + db_dict_1[key]
-"""
 # print("\n\n")
 # for key in tfidf_query:
 #     print(key, tfidf_query[key])

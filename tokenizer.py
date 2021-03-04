@@ -188,6 +188,20 @@ class Tokenizer:
             return sentence
         return sentence
 
+    def htmlContentSeparator(self, url_data):
+        """
+        This function will get the url_data and split every word that is categorized as text in url_data
+        :param url_data = the html text page string
+        :returns a unprocessed list from url_data text
+        """
+        sentence = ""
+        try:
+            sentence = url_data.getText(separator= ' ').lower()
+        except Exception as e:
+            print(f"ErrorInHTMLContent: {e}")
+            return sentence
+        return sentence
+
 
     # process list according to tags
     def soupTagImportance(self, soup):
