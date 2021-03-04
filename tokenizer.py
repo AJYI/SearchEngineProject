@@ -2,14 +2,9 @@ from textblob import Word
 from textblob import TextBlob, blob
 from bs4 import BeautifulSoup
 from collections import Counter
-from nltk.stem import WordNetLemmatizer
 import re
 import datetime
-import spacy	
-spacy_nlp = spacy.load('en_core_web_sm')
 from urllib.parse import urlparse
-
-
 
 
 class Tokenizer:
@@ -142,14 +137,14 @@ class Tokenizer:
         return False
 
 
-    # Returns a lemmatized sentence
-    def lemmatize(self, sentence):
-        # now using spacy
-        try:
-            doc = spacy_nlp(sentence)
-            return ([token.lemma_ for token in doc])
-        except:
-            print("Error in lemmatize")
+    # # Returns a lemmatized sentence
+    # def lemmatize(self, sentence):
+    #     # now using spacy
+    #     try:
+    #         doc = spacy_nlp(sentence)
+    #         return ([token.lemma_ for token in doc])
+    #     except:
+    #         print("Error in lemmatize")
 
     # Lemmatize function with pattern
     def lemmatize2(self, sentence):
@@ -191,25 +186,7 @@ class Tokenizer:
             print(f"ErrorInHTMLContent: {e}")
             return sentence
         return sentence
-<<<<<<< HEAD
 
-    def htmlContentSeparator(self, url_data):
-        """
-        This function will get the url_data and split every word that is categorized as text in url_data
-        :param url_data = the html text page string
-        :returns a unprocessed list from url_data text
-        """
-        sentence = ""
-        try:
-            sentence = url_data.getText(separator= ' ').lower()
-        except Exception as e:
-            print(f"ErrorInHTMLContent: {e}")
-            return sentence
-        return sentence
-
-=======
-        
->>>>>>> ef997798a6f764dd1512a4b5f002a5994ffac4e1
 
     # process list according to tags
     def soupTagImportance(self, soup):
