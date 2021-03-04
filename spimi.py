@@ -158,7 +158,7 @@ class Spimi:
 
         Purpose: counts the number of occurrences of each token in the token list (List<Token> tokens).
         Return: a sorted dictionary of counted words, number of titles, number of headers, number of bolds, and number of body
-        Essentially [Value_Total, title_total, header_total, bold_total, body_total]
+        Essentially [Value_Total, title_total, header_total, bold_total, body_total, tf]
         """
         count_dict_title = Counter(token_dict['title'])
         count_dict_header = Counter(token_dict['header'])

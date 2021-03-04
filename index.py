@@ -13,7 +13,7 @@ class Index:
             urlKey_list = json.load(keyFile)
         basepath = 'WEBPAGES_RAW/'
 
-        # Total Approved Documented
+        # Total Approved Documents
         docs = 0
 
         # FOR DEBUGGING PURPOSES

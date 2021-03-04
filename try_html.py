@@ -41,7 +41,11 @@ tokenObj = Tokenizer()
 """
 
 myclient = MongoClient("mongodb://localhost:27017/")
+<<<<<<< HEAD
 db = myclient['CS121_1000']
+=======
+db = myclient['CS121']
+>>>>>>> ef997798a6f764dd1512a4b5f002a5994ffac4e1
 
 def search_in_db(db, text):
     # return dictionay 

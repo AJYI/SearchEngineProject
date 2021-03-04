@@ -15,7 +15,11 @@ class Database:
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
+<<<<<<< HEAD
         self.db_name = "CS121_norm_100"
+=======
+        self.db_name = "CS121Test"
+>>>>>>> ef997798a6f764dd1512a4b5f002a5994ffac4e1
         self.db = self.cluster[self.db_name]
 
 
@@ -148,12 +152,20 @@ class Database:
 
 
                     if collection.count_documents({'_id': key}, limit=1) != 0:
+<<<<<<< HEAD
                         collection.update({"_id": db_list[0]}, {'$push': {
+=======
+                        collection.update({"_id": db_list[0]}, {'$push': { ''
+>>>>>>> ef997798a6f764dd1512a4b5f002a5994ffac4e1
                         "doc_info": {"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'weight': weight, 'normalized': (weight / length)}}})
                         continue
                     else:
                         # Inputs the key into the database if the key doesn't exist
+<<<<<<< HEAD
                         post = {"_id": db_list[0], "total": total_dict[key], "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'weight': weight, 'normalized': (weight / length)}]}
+=======
+                        post = {"_id": db_list[0], "total": total_dict[key], "idf": idf , "doc_info": [{"uniqueID": db_list[1], "originalID": db_list[2], "frequency": db_list[3][0], 'title': db_list[3][1], 'header': db_list[3][2], 'bold': db_list[3][3], 'body': db_list[3][4], 'weight': weight, 'normalized': (weight / length)}]}
+>>>>>>> ef997798a6f764dd1512a4b5f002a5994ffac4e1
                         collection.insert_one(post)
                         continue
 

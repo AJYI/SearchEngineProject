@@ -49,7 +49,7 @@ class Query:
         This function will return a list of links that are according the the tf-idf score, cosine similarity, and html tags
         """
         #Write your functionality here
-        return []
+        return tokenizedQuery
 
 
     def printResults(self, resultsList):
