@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 
 
+
 class Tokenizer:
     """
     This class is responsible for building inverted index
@@ -35,71 +36,45 @@ class Tokenizer:
         :return: a tokenized list
         """
         # Tokenizes out the punctuations/underscore/and the other stuff
-        fullTokenizedList = []
         try:
-            lemmaSentence = self.lemmatize(sentence.lower())
-
-            lemmaList = lemmaSentence.split()
-            lemmaListNoNum = self.checkForRawNumbers(lemmaList)
-            lemmaListTokenized = self.tokenizeBadCharacters(lemmaListNoNum)
-            lemmaSentence = " ".join(lemmaListTokenized)
-
-            blob = TextBlob(lemmaSentence)
-            tokenizedList = list(blob.words)
-            
-            # Checks for stop words, if stop words exists, it is removed
-            for i in tokenizedList:
-                if self.checkStopWord(i):
-                    continue
-                else:
-                    fullTokenizedList.append(i)
+            lemmaList = self.lemmatize2(sentence.lower())
+            lemmaListTokenized = self.tokenizeList(lemmaList)
         except Exception as e:
             # Used to check if there are errors that needs to be fixed
             print(f"Error in tokenize: {e}")
-        return fullTokenizedList
-    
-
-    def checkForRawNumbers(self, lemmaList):
-        """
-        This function will check if raw number exist within the html page
-        We are doing this because we noticed that the numbers inflates our db size immensely
-        This will filter out pages like 35/269
-        """
-        returnList = []
-        for word in lemmaList:
-            try:
-                float(word)
-                continue
-            except:
-                returnList.append(word)
-        return returnList
+        return lemmaListTokenized
 
     
-    def tokenizeBadCharacters(self, lemmaListNoNum):
+    def tokenizeList(self, lemmaListNoNum):
         """
         This function will tokenize bad characters
         bad characters = anything with comma, dashes, underscore, etc
         """
-        #print(lemmaListNoNum)
-        try:
-            filteredList = []
-            for word in lemmaListNoNum:
+        filteredList = []
+        for word in lemmaListNoNum:
+            try:
+                # Checks whether the number is an isolated number
+                if self.checkForRawNumbers(word) is True:
+                    continue
+
                 # Checks whether the word is a time 01:00 01:15
-                if self.checkTimeWord(word) is True:
+                # If it's a time, then we add it to our list
+                elif self.checkTimeWord(word) is True:
                     filteredList.append(word)
                     continue
 
                 # Checks the dates
-                elif self.checkNumberedDates(word) is True:
-                    filteredList.append(word)
-                    continue
+                elif word[0].isnumeric():
+                    if self.checkNumberedDates(word):
+                        filteredList.append(word)
+                        continue
 
                 # Checks URL
                 elif re.match(self.regex, word) is not None:
                     filteredList.extend(self.parseURL(word))
                     continue
 
-                # mainly when links are passed into the string
+                # if there are any characters that have bad characters
                 elif not word.isalnum() or not word.isascii():
                     processedWord = ""
                     for i in range(len(word)):
@@ -110,14 +85,23 @@ class Tokenizer:
                                 processedWord += word[i]
                         except:
                             processedWord += " "
-                    filteredList.append(processedWord)
-                else:
-                    filteredList.append(word)
+                    processedList = processedWord.split()
 
-            return filteredList
-        except Exception as e:
-            print(e)
-            return []
+                    # for checking stopSet
+                    for w in processedList:
+                        if w not in self.stopSet:
+                            filteredList.append(w)
+                    continue
+                
+                # default logic
+                else:
+                    if word not in self.stopSet:
+                        filteredList.append(word)
+                        continue
+
+            except Exception as e:
+                print(f"Error on Lemmatize2: {e}")
+        return filteredList
 
 
     def checkTimeWord(self, word):
@@ -125,6 +109,19 @@ class Tokenizer:
         # This function checks whether the string word is in a format of a time
         time = re.compile(r'^(([01]\d|2[0-3]):([0-5]\d)|24:00)$')
         return bool(time.match(word))
+
+
+    def checkForRawNumbers(self, word):
+        """
+        This function will check if raw number exist within the html page
+        We are doing this because we noticed that the numbers inflates our db size immensely
+        This will filter out pages like 35/269
+        """
+        try:
+            float(word)
+            return True
+        except:
+            return False
          
     
     def checkNumberedDates(self, word):
@@ -136,7 +133,7 @@ class Tokenizer:
         # Trying different formats
         """
         
-        for formats in ("%d-%b-%Y", "%m-%d-%Y", "%m-%d-%y", "%m/%d/%Y", "%m/%d/%y", "%m.%d.%y, %m.%d.%Y"):
+        for formats in ("%d-%b-%Y", "%m-%d-%Y", "%m-%d-%y", "%m/%d/%Y", "%m/%d/%y"):
             try:
                 datetime.datetime.strptime(word,formats)
                 return True
@@ -150,11 +147,18 @@ class Tokenizer:
         # now using spacy
         try:
             doc = spacy_nlp(sentence)
-            sent = " ".join([token.lemma_ for token in doc]).lower()
-            sent = sent.split()
-            return ' '.join(sent)
+            return ([token.lemma_ for token in doc])
         except:
             print("Error in lemmatize")
+
+    # Lemmatize function with pattern
+    def lemmatize2(self, sentence):
+        # Source: https://www.machinelearningplus.com/nlp/lemmatization-examples-python/
+        sent = TextBlob(sentence)
+        tag_dict = {"J": 'a', "N": 'n', "V": 'v', "R": 'r'}
+        words_and_tags = [(w, tag_dict.get(pos[0], 'n')) for w, pos in sent.tags]    
+        lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]  
+        return lemmatized_list  
 
 
     def checkStopWord(self, word):

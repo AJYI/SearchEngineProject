@@ -39,7 +39,7 @@ class Index:
         for urlKey in urlKey_list:
 
             # FOR DEBUGGING PURPOSES
-            if (counter >= 100):
+            if (counter >= 1000):
                 break
             counter += 1
 
@@ -78,4 +78,4 @@ class Index:
         # PHASE 2: We write to the database/Creating the inverted index
         ################################################################
         
-        mongoDataBase.write_to_database(docs)
+        #mongoDataBase.write_to_database(docs)
