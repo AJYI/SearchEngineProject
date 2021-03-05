@@ -14,7 +14,7 @@ class Database:
         User can change the db name in MongoDB to whatever they want, to do this, change self.db_name
         """
         self.cluster = pymongo.MongoClient()
-        self.db_name = "CS121_norm_100"
+        self.db_name = "CS121_norm_100_tagint"
         self.db = self.cluster[self.db_name]
 
 
@@ -122,10 +122,10 @@ class Database:
                     db_list[3][5] = tf score
                     """
                     # Meta Tags Multiplier
-                    titleW = 0.5 * db_list[3][1]
-                    headerW = 0.3 * db_list[3][2]
-                    boldW = 0.2 * db_list[3][3]
-                    bodyW = 0.1 * db_list[3][4]
+                    titleW = 4 * db_list[3][1]
+                    headerW = 3 * db_list[3][2]
+                    boldW = 2 * db_list[3][3]
+                    bodyW = 1 * db_list[3][4]
                     tagScore = titleW + headerW + boldW + bodyW
 
 

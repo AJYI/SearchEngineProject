@@ -1,3 +1,4 @@
+from typing import Counter
 from tokenizer import Tokenizer
 from spimi import Spimi
 from database import Database
@@ -17,7 +18,7 @@ class Index:
         docs = 0
 
         # FOR DEBUGGING PURPOSES
-        #counter = 0
+        counter = 0
 
         #############################################################################
         # PHASE 1: We create the text file that will have the data for inverted index
@@ -39,9 +40,9 @@ class Index:
         for urlKey in urlKey_list:
 
             # FOR DEBUGGING PURPOSES
-            # if (counter >= 1000):
-            #     break
-            # counter += 1
+            if (counter >= 100):
+                break
+            counter += 1
 
             # get HTML file's path
             htmlFile = os.path.join(basepath, urlKey)
