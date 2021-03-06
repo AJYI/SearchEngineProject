@@ -1,17 +1,16 @@
-from nltk.util import pr
-from tokenizer import Tokenizer
-from spimi import Spimi
-from bs4 import BeautifulSoup
-from collections import Counter
-import os
-import lxml.html
-import re
-import numpy as np
 from urllib.parse import urlparse
 import spacy	
 spacy_nlp = spacy.load('en_core_web_sm')
 import numpy as np
 import math
+import collections
+from tokenizer import Tokenizer
+from numpy import append, dot
+from numpy.linalg import norm
+from collections import OrderedDict
+from pprint import pprint
+
+
 
 # ## lemitize
 # def lemmatize(sentence):
@@ -20,318 +19,366 @@ import math
 #     return " ".join([token.lemma_ for token in doc])
 
 import pymongo
-# import pprint
-# import json
-# import warnings
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-tokenObj = Tokenizer()
-### working getting information on DB 
+### working getting information on DB c
 
-"""
-1) extract token#1's ALL uniqueID (3 & 9 & 48)
-2) extract token#2 ALL uniqueID  (3 & 9 )
-3) & the two lists from (1) & (2)  i get both list (1) &(2)
-4) use the uniqueID from (3) to retrieve the tf-idf for both token #1 and token #2 (im adding tfidf in eadh document)
-
-# computer & science = ? check sum tfidf.
-# this is tfidf score for query  
-
-"""
 
 myclient = MongoClient("mongodb://localhost:27017/")
-<<<<<<< HEAD
-db = myclient['CS121_1000']
-=======
-db = myclient['CS121']
->>>>>>> ef997798a6f764dd1512a4b5f002a5994ffac4e1
+db = myclient['CS121_norm_100']
+tokenObj = Tokenizer()
 
-def search_in_db(db, text):
-    # return dictionay 
-    db_dict = {}
-    # text first char in token
-    first_letter = text[0]
+
+def print_dict(cur_dict):
+    # helper function 
+    for key in cur_dict:
+        print(key, cur_dict[key])
+
+
+def get_query_vector(user_input):
+    """
+    for the query vector, normalizes and returns vector
+    param : user_input | list
+    returns : np.array(vector_list), user_input_unique
+    """
+    print(user_input)
+    # [alice fly faustina flys]
+    # [alice fly faustina fly]
+    user_list = tokenObj.tokenize(user_input) # assume not a unique words allows dupe
+    input_freq_dict = collections.Counter(user_list) ## assume its returning term tf weight 
     
+    query_len = 0
+    user_input_unique = [] # keep track of the query vec word order
+    normalized_list = []
+
+    ## calculate tf weight 
+    print("Start calculate tf weight")
+    print(input_freq_dict)
+
+    for key in input_freq_dict:
+        tf_weight = get_query_weight(key, input_freq_dict[key])
+        print(key , "weight :", tf_weight)
+        user_input_unique.append(key)
+        normalized_list.append(tf_weight) 
+        query_len += tf_weight**2
+
+    print("Input frequecy dictionary")
+    print(input_freq_dict)
+
+    print("Normalized list")
+    print(normalized_list)
+
+    print("User input unique")
+    print(user_input_unique)
+
+    query_len = math.sqrt(query_len)
+
+    vector_list = []
+
+    # normalize
+    for item in normalized_list:
+        item = item/query_len
+        vector_list.append(item)
+
+    return np.array(vector_list), user_input_unique
+
+
+## before we pass in we get uniqueness && pass 
+def get_query_weight(query, tfwt):
+    """
+    for the query weight 
+    param : query | string , tfwt | int
+    returns : query_weight | float
+    """
+    # text first char in query
+    first_letter = query[0]
+
     # this is text[0]
     alpha_db = db[first_letter]
-    doc_info = alpha_db.find_one({"_id":text})['doc_info']
+    # df = alpha_db.find_one({"_id":query})['total']
+    idf = alpha_db.find_one({"_id":query})['idf']
+    # print("total of", query, ": ", df)
 
-    # query length square root of total tfidf
-    query_len = 0
-    tf_idf = 0
-    # query_vector = []
+    ## according to the db! ##
+    # total_amt_doc = 100 
+    ## according to the db! ##
 
-    # getting all the doc info
-    print("for loop in doc info")
-    for doc in doc_info:
-        # db_dict[doc['uniqueID']] = doc['tf']*doc['idf']
-        
-        # query_len += float((doc['tf']*doc['idf'])**2)
-        # # query_vector.append(doc['tf']*doc['idf'])
-        # # print("query_vector: ", query_vector)
+    # idf = math.log(total_amt_doc/df)
+    # print("get_query_weight total_amt_doc :", total_amt_doc)
+    print("get_query_weight tfwt :", tfwt)
+    # print("get_query_weight df :", df)
+    print("get_query_weight idf", idf)
+    weight = tfwt * idf 
+    print("get_query_weight's weight : ", weight)
 
-        # # query_len = np.power((doc['tf']*doc['idf']),2)
-        db_dict[doc['uniqueID']] = doc['tf-idf']
-        print(doc['uniqueID'], doc['tf-idf'])
-    query_len = math.sqrt(query_len)
-    print("query_len :", query_len)
-    # query_vector = np.true_divide(query_vector, query_len)
-    # print("query_vector :", query_vector)
-
-    for key in db_dict:
-        db_dict[key] = db_dict[key]/query_len
-
-    return db_dict
+    return weight
 
 
-# takes two dictionray and returns tfidf_query
-def query_tfidf_add(db_dict_1, db_dict_2):
-    # print(db_dict_1.keys())
-    # print(db_dict_2.keys())
-    list_keys = set(db_dict_1.keys()) & set(db_dict_2.keys())
 
-    tfidf_query = {}
 
-    if (len(db_dict_1) < len(db_dict_2)):
-        for key in list_keys:
-            tfidf_query[key] = db_dict_1[key] + db_dict_2[key]
-    else:
-        for key in list_keys:
-            tfidf_query[key] = db_dict_2[key] + db_dict_1[key]
+    # doc_dic = {origianlId : [normalized, tagscore]}
+    # doc_tag_noarmald = key = tagscore : value docid_list = []
+    # doc_tag_noarmal = {}
+    # if tagscore is not in doc_tag_noarmal.keys():
+    #     add into doc_tag_noarmal[tagscore] = docid
+    # else:
+    #     doc_tag_noarmal[tagscore] add into list of docid_list
 
-    return tfidf_query
+    # sort dictionay with key (tagscore):
+    # we get top 30 ->
 
-# for loop part
-# takes in - userinput : user input
-def combine_query(db, userinput):
-    # this will tokenize  + lemma
-    input_list = tokenObj.tokenize(userinput)
-    # input_list = userinput.split(' ')
-    print(input_list)
-    size = len(input_list)  # how many words in query
 
-    if size == 1:
-        return search_in_db(db, input_list[0])
-    else:  # more than one words
-        # oldDoc contains the array associated with the token (word)
-        oldDoc = search_in_db(db, input_list[0])
-        
-        # print(input_list[0], "\n\n" ,oldDoc)
-        for i in range(1, size):
+def document_weight_tag(user_input_unique_list):
+    """
+    for the query normalized values  
+    param : user_input_unique | string 
+    returns : doc_dic | string
+    """
+    word_doc_dict = {}
+    # {query_word : docdictionay, query_word : docdictionay}
+    docid_list = [[],[]]
+    word_doc_tag = {}
+    sort_tag_list =  []
+    sort_tag_dict = {}
+
+    # if the query is 2 words only
+    if len(user_input_unique_list) == 2:
+        # for query_word in user_input_unique_list:
+        for i in range(len(user_input_unique_list)):
+            doc_dict = {}
+            doc_tag_norm_dict = {}
+
+            first_letter = user_input_unique_list[i][0]
+            alpha_db = db[first_letter]
+            docinfo = alpha_db.find_one({"_id":user_input_unique_list[i]})['doc_info'] 
+
+            # each word willl have a doc_dict 
+            for document in docinfo:
+                # print('word : ',user_input_unique_list[i])
+                tagScore = document['tagScore']
+                docid = document['originalID']
+                doc_dict[document['originalID']] = [document['normalized'], tagScore] # [normalized, tagsore]
+                docid_list[i].append(document['originalID'])
+
+                # print("tag : ", tagScore, "tag : ", type(tagScore),"\n")
+                if tagScore in doc_tag_norm_dict.keys():
+                    # print("tag : ", tagScore, "tag : ", type(tagScore),"already   exist: ", doc_tag_norm_dict[tagScore])
+                    doc_tag_norm_dict[tagScore] += [docid]
+                    # print("after putting :",  doc_tag_norm_dict[tagScore])
+                else:
+                    doc_tag_norm_dict[tagScore] = ([docid])
             
-            newDoc = search_in_db(db, input_list[i])
-            # print(input_list[i], "\n\n", newDoc)
-            oldDoc = query_tfidf_add(oldDoc, newDoc)
+            word_doc_dict[user_input_unique_list[i]] = doc_dict
+            word_doc_tag[user_input_unique_list[i]] = doc_tag_norm_dict
+            # print("sorted tag list: ", sorted(list(doc_tag_norm_dict.keys()), key = lambda x:float(x), reverse=True))
+            sort_tag_dict[user_input_unique_list[i]] = sorted(list(doc_tag_norm_dict.keys()), key = lambda x:float(x), reverse=True)
+            sort_tag_list.append(sorted(list(doc_tag_norm_dict.keys()), key = lambda x:float(x), reverse=True))
+        
+        # print_dict(word_doc_dict)
+        print("DocTag\n")
+        print_dict(word_doc_tag)
+        print("Sorted Tag\n")
+        print(sort_tag_list)
+        # docid that contains both words 
+        intersect_ids = set(docid_list[0]).intersection(set(docid_list[1]))
+        print("intersetct ids: ", intersect_ids)
 
-        return oldDoc
+        word_list = []
+        # word_dict = {}
+        # get  unique id list first
+        
+        for word in  word_doc_dict: # {query_word : docdictionay, query_word : docdictionay}
+            if len(intersect_ids) > 30:
+                print("~~~~~~In > len(intersect_ids) > 30")
+                counter = 0
+                word_dict = {}
 
+                # for tag_score in sort_tag_list:
+                for tag_score in sort_tag_dict[word]:
+                    print("sort_tag_dict[word]", sort_tag_dict[word])
+                    print("\n\n!!tagscore: ", tag_score)
+                    # print
+                    # for tag in tag_score:
+                    print("!!list of doc id : ", tag_score)
+                    print('word_doc_tag keys',word_doc_tag.keys())
+                    print('accessing ', word)
+                    # print("The dictionay for",word,":" , word_doc_tag[word])
+                    dictionay = word_doc_tag[word]
+                    print("!!list of word doc tag id : ", dictionay[tag_score])
+                    list_of_doc_id = dictionay[tag_score]
+                    no_docid = len(list_of_doc_id)
 
-# tokenObj = Tokenizer()
+                    if counter < 30:
+                        print("~~~~~~~~In if counter < 30")
+                        counter += no_docid
+                        print("Adding len of doc id", no_docid)
 
-enter1 = "cut" # frequency
-enter2 = "career"
-enter3 = "completeanns"
+                        # we add 
+                        for docid in list_of_doc_id:
+                            temp_dict = word_doc_dict[word]
+                            word_dict[docid] = temp_dict[docid] # [normalized, tagsore]
+                            print("Adding", temp_dict[docid], "....")
+                    
+                    elif counter >=30:
+                        print("~~~~~~~~In if counter >= 30")
+                        break
 
-doc_normalized_dict = search_in_db(db, enter1)
-print("\n\ntfidf query")
-for key in doc_normalized_dict:
-    print(key, doc_normalized_dict[key])
-query_vector = doc_normalized_dict.values()
-print("query_vector: ", list(query_vector))
+                    print("Counter : ", counter)
+                        
+                word_list.append(word_dict)
 
-
-
-"""
-enter = input("Enter to search : ")
-
-## 1. Represent the query as a weighted tf-idf vector.
-tfidf_query = combine_query(db, enter)
-
-print("\n\ntfidf query")
-for key in tfidf_query:
-    print(key, tfidf_query[key])
-
-
-## 2. Represent each document as a weighted tf-idf vector
-# <tfidf, tfidf, tfidf, tfidf>
-tfidf_vector = np.array(tfidf_query.values() )
-print(tfidf_vector)
-"""
-
-## 3. Compute the cosine similarity score for the query vector. and each document vector.
-
-
-# print("\n\n")
-# for key in tfidf_query:
-#     print(key, tfidf_query[key])
-# allkey = set().union(*alldict)
-
-
-
-# # print(db['a'].find(myquery))
-# a_db = db['a']
-# one_a = db['a'].find_one()
-# # objInstance = ObjectId('acm')
-# id = "acm"
-
-# # print(a_db.find_one({"_id":"acm"})['doc_info'])
-
-# doc_info = a_db.find_one({"_id":"acm"})['doc_info']
-
-# # how to get unique id 
-# for doc in doc_info:
-#     print(doc['uniqueID'], doc['tf-idf'] )
-
- 
-
-
-# print(a_db.find_one())
-# print(a_db.find_one()['_id'])
-
-# print(one_a['_id']) ## gives the  _id
-
-
-
-# print("\ndatabase b:")
-# print(db['b'].find_one())
+            else:
+                print("~~~~~~In > len(intersect_ids) < 30")
+                word_dict = {}
+                # {query_word : docdictionay, query_word : docdictionay}
+                # docdictionary ={docid : [normalized, tagsore]}
+                # append everything
+                for ids in intersect_ids:
+                    # print("each ids :", ids)
+                    word_dict[ids] = word_doc_dict[word][ids] # [normalized, tagsore]
+                    # print("[normalized, tagsore] :", word_doc_dict[word][ids])
+                word_list.append(word_dict)
 
 
-# print(db.list_collection_names())
-# print(serach_in_db)
-# print(type(enter[0]))
-
-# gets the first char and search the db
-# a  = enter[0]
-# print(search_in_db(db,enter))
+        print("\n\n\nEnding ... \nWord List1 : ", print_dict(word_list[0])) 
+        print("\nWord List2 : ", print_dict(word_list[1]))
+    # return doc_dict
 
 
-
-# regex = re.compile(
-#         r'^(?:http|ftp)s?://' # http:// or https://
-#         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-#         r'localhost|' #localhost...
-#         r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-#         r'(?::\d+)?' # optional port
-#         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-
-# # 101 -> has weird capital I
-# # 138 -> raises error with Error in tokenize: list.remove(x): x not in list
-
-# url_smaple = "http://proquest.umi.com/cat/dog/pqdweb?index=4&did=000000111479923&SrchMode=1&sid=1&Fmt=3&VInst=PROD&VType=PQD&RQT=309&VName=PQD&TS=1078069852&clientId=1568"
-# url_sample2 = "https://stackoverflow.com/questions/7160737/hey-my-name-is-Faustina/how-to-validate-a-url-in-python-malformed-or-not"
-# url_smaple3 = "http://hpdma2.math.unipa.it/welcome.html"
+# document_weight_tag(['computer','irvine'])
 
 
-# if( (re.match(regex, url_smaple3) is not None) == True):
+def document_weight_tag_limit30(db, user_input_unique_list):
+    # for i in range(len(user_input_unique_list)):
+    #         doc_dict = {}
+    #         doc_tag_norm_dict = {}
 
-#     total_list = []
+    #         first_letter = user_input_unique_list[i][0]
+    first_word = user_input_unique_list[0]
+    first_letter = first_word[0]
+    mycol = db[first_letter] # collection db
+    # cursor = mycol.find({'_id':first_word})
+    # cursor = mycol.find({'_id':first_word}, {'doc_info': {'originalID': '0/100'}  } )
+    # cursor = mycol.find({"_id":first_word}, {"doc_info.originallID" : "0/100"} )
 
-#     parse_url = urlparse(url_smaple3)
-#     netlock = parse_url[1]
-#     # add the netlock
-#     total_list.append(netlock)
+    # cursor = mycol.find({'_id':first_word}, {'doc_info.originalID':'0/100' } )
+    # cursor = mycol.find({'_id':first_word}, {'doc_info.originalID'} )
+    query =  {"doc_info.originallID" : "0/100"}
+    query1 = {'originalID': '1/51'}
 
-#     netlock_re = re.split('\W+', netlock)
-#     total_list = total_list + netlock_re
+    # cursor = mycol.find({"_id": first_word}, {"doc_info":0}) # _id, schooll, idf, total
+    # cursor = mycol.find({"_id":first_word},{"doc_info":-1}) # _id, doc_info
 
-#     # split the path
-#     path = parse_url[2]
-#     path_split = parse_url[2].split('/')
 
-#     for path in path_split:
-#         path = re.split('\W+', path)
-#         # total_list = total_list + path
-#         if path[0] != '':
-#             total_list = total_list + path
+    # cursor = mycol.find({"_id":first_word}, {'doc_info': query1})
+    # cursor = mycol.find({"_id":first_word}, {"doc_info.originalID"})
 
-#     print("total\n",total_list)
+    # cursor = mycol.find({"_id":first_word}, {"doc_info.originalID"}, {"doc_info.tagScore"})
+    # cursor = mycol.find({"_id":first_word}, {"doc_info.originalID":"0/100"})
+    #cursor = mycol.find({"_id":"cut"}, {"doc_info.originalID", "doc_info.tagScore"})
 
+    cursor = mycol.aggregate([
+            {"$unwind": "$doc_info"},
+            {"$match": {"_id": first_word}},
+            {"$project":{
+                "doc": "$doc_info.originalID",
+                "tagScore": "$doc_info.tagScore"
+            }},
+            {"$sort": { "tagScore": pymongo.DESCENDING}},
+            {"$limit": 30}
+        ])
+    
+    
     
 
 
 
-# htmlFile = os.path.join('WEBPAGES_RAW/', '0/236')
-# if os.path.isfile(htmlFile):
-#     with open(htmlFile) as fp:
-#         # soup contains HTML content
-#         soup = BeautifulSoup(fp, "lxml")
+    # cursor = mycol.find({"_id":"cut"}, {"doc_info"})
+    # print(cursor.count())
+    # print("Pretty print cursor ...")
+    # print(cursor.pretty())
 
-#         tokenObj = Tokenizer()
-#         spimiObj = Spimi()
+    print("Printing cursor ... ")
+    # print the cursor
+    for doc in cursor:
+       pprint(doc)
+    print()
+
+document_weight_tag_limit30(db, ["cut"])
+
+
+def document_weight(one_word):
+    """
+    for the query normalized values  
+    param : user_input_unique | string 
+    returns : doc_dic | string
+    """
+    doc_dic = {}
+    # text first char in query
+    first_letter = one_word[0]
+
+    # this is text[0]
+    alpha_db = db[first_letter]
+    docinfo = alpha_db.find_one({"_id":one_word})['doc_info']
+    for obj in docinfo:
+        normalized = obj['normalized']
+        doc_dic[obj['uniqueID']] = normalized
+
+    return doc_dic
+
+# union_docid = set(d_dict.key()) && set(d_dict.key())
+# key = [doc_idunion]: value_normalised=[[d1], [d2], [d3]]
+
+
+def document_weight_muliple(user_input_unique):
+    """
+    for the query weight for multiple
+    param : user_input_unique | list string 
+    returns : doc_dic | doc_dic
+    """
+    doc_dic = {}
+
+    idx_user_input = len(user_input_unique)
+
+    d_dict_list = [] # all document dictioniees in list key:normalized
+    # we have to keep track of the  which word accordings to the normzlaied .
+    # we need to put it in a double array, x=documents y=terms
+    # user_input_unique[]
     
+    for i in range(idx_user_input):
+        # retrive all document in all quries 
+        doc_dict = document_weight(user_input_unique[i]) # asumming top 30 tag_imp here 
+        d_dict_list.append(doc_dict) # asumming top 30 tag_imp
 
-#         sentence = tokenObj.htmlContentSeparator(soup) # sentence -> string (alex's code)
-#         print("\n\n~~ B4 tokenize sentence ~~\n")
-#         print(sentence)
+    cosine_sim_list = [] # list of cosine sim of each doc & query 
+    # cosine_sim_list = cosine_similarity(q_vec, d_dict_list)
 
-#         sentence = tokenObj.tokenize(sentence) # tokenize -> returns list [string, string]
-#         print("\n\n~~ sentence ~~\n")
-#         print(sentence)
-        
-
-
-############ !!!!! lemmatize function problem when i do 0/236, it doesnt work
-# not all the words are lematizing correctlly 
-
-# word = """the webdav working group met two times at the washington ietf meeting,
-# on monday and tuesday, december 8-9, 1997, and 78 people attended one
-# or both of the sessions. the chair was jim whitehead, and notes were
-# recorded by alec dun, del jensen, and rohit khare, then edited by jim
-# whitehead"""
-# # print("Before")
-# # print(word)
-# print("~~~~~After")
-# print(lemmatize(word))
-
-# tokenObj = Tokenizer()
-# print(tokenObj.lemmatize(word))
-# print()
-
-# print("tokenizer")
-# print(tokenObj.tokenize(word))
-# # print(type(tokenObj.lemmatize(word)))
-        
-
-# print(lemmatize(word))
+    return cosine_sim_list
 
 
+# i was gonna json file according to each uniquedocid,
 
+# doc_vect = [doc2[normlized] , doc2[normalzied]]
+def cosine_similarity(q_vec, d_dict):
+    """
+    commputes cosine similarity for one word
+    param : q_vec|np array, d_vec| list of list
+    return : list | cos_sim_list
+    """
+    cos_sim_list = []
 
-"""
-# 0/5 has only h1
-# 0/6 has more than h1
-htmlFile = os.path.join('WEBPAGES_RAW/', '0/6')
-if os.path.isfile(htmlFile):
-    with open(htmlFile) as fp:
-        # soup contains HTML content
-        soup = BeautifulSoup(fp, "lxml")
+    # example cut 
+    # {3: 0.23201859645566503, 39: 0.08625382108082906}
+    for doc in d_dict:
+        # doc product of q_vec & 
+        d_vec = np.array(d_dict[doc])
+        cos_sim = np.dot(d_vec, q_vec)
+        cos_sim_list.append(cos_sim)
 
-        tokenObj = Tokenizer()
-        spimiObj = Spimi()
-        
+    cos_sim_list.sort(reverse=True)
 
-        # get the frequency of the word occurance 
-        unprocessed_list = tokenObj.htmlContentToList(soup)
-        tokenized_list = tokenObj.tokenize(unprocessed_list)
-        # print(tokenized_list)
-        word_freq_dict = Counter(tokenized_list)
-        # print(count_word_freq)
-
-        # get the total length 
-        total_words = len(tokenized_list)
-
-        # normalize TF for document
-        for word in word_freq_dict:
-            word_freq_dict[word] = word_freq_dict[word] / total_words
-        
-        print(word_freq_dict)
-
-        # try to get the IDF for the each term
-#         getIDF(total_no_document, no_doc_with_term)
-
-#         print()
-
-def getIDF(total_no_document, no_doc_with_term):
-    idf = 1 + np.log(total_no_document/no_doc_with_term)
-"""
+    if (len(cos_sim_list) > 20 ):
+        cos_sim_list = cos_sim_list[:20]
+    
+    return cos_sim_list
