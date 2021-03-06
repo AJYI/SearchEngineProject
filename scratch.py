@@ -30,14 +30,17 @@ def print_dictionary(cur_dict):
         print(key, cur_dict[key])
         
         
-"""
-Gets the top 700 documents from each word in the query.
-e.g. If we have 4 word query, we have ~2800 doc in total
-input : user_input_unique_list | list : query
-"""
-def getTopDoc(query_list):
 
-    query_database = {}
+def getTopDoc(query_list):
+    """
+    Gets the top 700 documents from each word in the query.
+    e.g. If we have 4 word query, we have ~2800 doc in total
+    input : query_list | list : query
+    return : query_database | dict {query_word : database_list} 
+            database_list : list of dict {'_id': quieryword, 'doc': docid, 'tagScore': tagscore, 'norm': normvalue} 
+            docID_Counter.keys() | list : overlapping docids among words
+    """
+
     allDoc = []
     SIZE_QUERY = len(query_list)
     
@@ -52,19 +55,22 @@ def getTopDoc(query_list):
             "norm": "$doc_info.normalized"
         }},
         {"$sort": { "tagScore": pymongo.DESCENDING}}, 
-        {"$limit" : 700 }
+        {"$limit" : 200 }
         ])
         # print("~~~~~getTopDoc type cursor", type(cursor))
 
         # combine all docIDs together in one list (there are duplicates)
-        for doc in cursor:
-            # print(type(doc))
+        cursor_list = list(cursor)
+        for doc in cursor_list:
+            # print("Printing doc ... ")
+            # print(doc)
             # print("~~~~~getTopDoc doc['doc']]", doc['doc'])
             allDoc += [doc['doc']]
-     
-        
-        query_database[word] = cursor
-        
+
+        # print("Printing len cursor ... ")
+        # print(len(cursor_list))
+            
+    
     # print(allDoc) # this prints all the document ids in all words
     
     docID_Counter = OrderedDict(Counter(allDoc)) # counts number of docIDs
@@ -73,18 +79,19 @@ def getTopDoc(query_list):
     # print(docID_Counter)
     # print(docID_Counter.keys())
     
-    return docID_Counter.keys()
+    return list(docID_Counter.keys())
 
-"""
-Retrieve docID's normalize from mongoDB
-Parameter: 
-    query_database: {query[0]: {cursor for query [0]},
-                     query[1]: {cursor for query [1]},
-                                    ...
-                     query[n]: {cursor for query [n]}}
-    docIDs: top documents with the highest overlap 
-"""    
+
 def getDocNormal(query_list, docIDs):
+    """
+    Retrieve docID's normalize from mongoDB
+    Parameter: 
+        query_database: {query[0]: {cursor for query [0]},
+                        query[1]: {cursor for query [1]},
+                                        ...
+                        query[n]: {cursor for query [n]}}
+        docIDs: top documents with the highest overlap 
+    """    
     # docid : [docid, docid ,docid, docid,docid, docid] overlapping 
     # returns doc_vector : {query_word : [ normalized, 0, ], # if has docid, normalized or 0.  top 20 
     #                query_word : [vector in order of docid]} # noarmlzied 20
@@ -97,65 +104,57 @@ def getDocNormal(query_list, docIDs):
 
     # rotate with np
 
+    # print("Matching docids ... ", docIDs)
+
     doc_vector = {}
 
-    ## what i ahve  to do tomorrow call it again cursor .. aggregate
-    ## loop through the aggreate? again and obtain the cursor 
     for word in query_list:
-        print("word in query_database", word)
-
-        cursor = db[word[0]].aggregate([
-            {"$match": {"_id": word}}, # matches with the id = word
-            {"$unwind": "$doc_info"}, # it extracts the array ! gets the whole array
-            {"$project":{
-                "doc": "$doc_info.originalID",
-                "tagScore": "$doc_info.tagScore",
-                "norm": "$doc_info.normalized"
-            }},
-            {"$sort": { "tagScore": pymongo.DESCENDING}}, 
-            {"$limit" : 700 }
-        ])
-     
         vector_list = []
         counter = 0
-        for doc in cursor:
-            print("~~inside loop \ndocid ", doc['doc'])
-            # according to the docIDs
-            if counter < 20:
-                print("\n~~docIDs[counter]", docIDs[counter])
-                print("docIDs[counter]", docIDs[counter])
-                if doc["doc"] == docIDs[counter]:
-                    # if has matching docID, insert normalized 
-                    print(doc["norm"])
-                    vector_list += [doc["norm"]]
-                else:
-                    # if does not have matching docID, insert 0 
-                    vector_list += [0]
-            else:
-                break
+
+        while counter < 20 and counter < len(docIDs):
+            # we look for a matching case
+
+            # getting norm
+            cursor = db[word[0]].aggregate([
+                {"$unwind": "$doc_info"},
+                {"$match": {"_id": word}},
+                {"$match": {"doc_info.originalID": docIDs[counter]}},
+                {"$project":{
+                    "doc": "$doc_info.originalID",
+                    "norm": "$doc_info.normalized"
+                }}
+            ])
+
+            cursor_list = list(cursor) # changes cursor into a list -> list of dictionaries 
+
+            if (len(cursor_list) == 1):
+                # found a match
+                vector_list.append(cursor_list[0]['norm']) # put in a normalized value
+            else: 
+                # didnt find a match
+                vector_list.append(0) # put a 0
+
             counter += 1
-        doc_vector[word] = vector_list
+        # print("Resulting vector ... \n", len(vector_list))
+        doc_vector[word] = vector_list # each word we return norm vector 
     
     return doc_vector
         
 
-    
 if __name__ == "__main__":
-    
     """combine all query_database documents together in a list called allDoc
     counter allDoc    """
 
-    query_list  = ["computer", "science", "irvine", "major", "university"]
+    query_list  = ["dragon", "cut"]
 
     docIDS = getTopDoc(query_list)
-    # print("docIDS", docIDS)
+    print("docIDS", docIDS)
     # print("\n\nquery_database", query_database)
 
-    
-
     doc_normalized = getDocNormal(query_list, docIDS)
-    # print("\nnoarmlized")
-    # print_dictionary(doc_normalized)
+    print("\nnoarmlized")
+    print_dictionary(doc_normalized)
 
 
 
