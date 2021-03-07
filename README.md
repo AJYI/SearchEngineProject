@@ -55,15 +55,15 @@ doc_info:Array
 ```
 
 ### basic_query:
-Basic query gets the user input and searches the matching data from the inverted index and returns the top 20 url results. Below is the explanation of how the final 20 url results is retrived.
+Basic query gets the user input and searches the matching data from the inverted index and returns the top 20 url results. Below is the explanation of how the final 20 url results is retrieved.
 
-#### Tokenise the query
-After user types in the query, the query gets tokenized. While getting tokenized, the stop words are moved from the query and gets lemmatized.
+#### Tokenize the query
+After user types in the query, the query gets tokenized. While getting tokenized, the stop words are removed from the query and the word gets lemmatized.
 
 #### Query & document vector
 First, the query vector is computed. Next, document vector is computed. While getting the information for document vector, each word's document vector is computed seperately. For the each word, the program first gets the top 700 document information according to the tagScore. After, we gets the top 50 documents that appears the most in all words. Lasty, top 20 documents with the highest tag score gets selected for document vector. 
 
-#### Compute coosine similarity
+#### Compute cosine similarity
 Lastly, cosine similarity is computed among the query vector document vector and displays it in desending order.
 
 
