@@ -45,8 +45,7 @@ class Query:
                 sorted_doc_id_list = self.getCosineSim(query_vector, doc_normalized, query_list, docIDS)
                 # Displays top 20 results
                 print("Here are your results: \n")
-                self.get_top20_url(sorted_doc_id_list)
-                print()
+                print(self.get_top20_url(sorted_doc_id_list))
         
         print("\n==================")
         print("Terminating program")
@@ -270,20 +269,41 @@ class Query:
         
 
 
-    def get_top20_url(self, sorted_doc_id_list):
+    def get_top20_url(sorted_doc_id_list):
         """
         Retrieves the top 20 url from the json file according to the docid
         Parameter: 
             sorted_doc_id_list
         """
         # Opening JSON file 
-        f = open("WEBPAGES_RAW/bookkeeping.json",) 
+        f = open("WEBPAGES_RAW/bookkeeping.json",)
+        docid_list = []
         
         data = json.load(f)
         idx = 1
         for docid in sorted_doc_id_list:
-            print(idx)
-            print(data[docid])
+            # print(idx)
+            # print(data[docid])
+            docid_list.append(data[docid])
             idx += 1
         
-        f.close() 
+        f.close()
+
+        return docid_list
+
+
+    def get_result_falsk(self, user_input):
+        """
+        For flask to display results
+        Parameter: 
+            user_input
+        Return:
+        """
+        tokenObj = Tokenizer()
+        query_list = tokenObj.tokenize(user_input)
+        query_vector = self.getWordNormal(query_list)
+        docIDS = self.getTopDoc(query_list)
+        doc_normalized = self.getDocNormal(query_list, docIDS)
+        sorted_doc_id_list = self.getCosineSim(query_vector, doc_normalized, query_list, docIDS)
+        
+        return self.get_top20_url(sorted_doc_id_list)
