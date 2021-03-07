@@ -1,32 +1,25 @@
-## https://flask.palletsprojects.com/en/1.1.x/quickstart/
-# to run : export FLASK_APP=flask_try.py
-# flask run
+# https://stackoverflow.com/questions/12277933/send-data-from-a-textbox-into-flask
+from flask import Flask, request, render_template
+import scratch
 
-# import the Flask class from the flask module
-from flask import Flask, render_template
-from flask import jsonify
-from flask import request
-from flask_pymongo import PyMongo
-
-# create the application object
 app = Flask(__name__)
 
-# create to connect local mongodb
-app.config['MONGO_DBNAME']='CS121_norm_1000'
-app.config["MONGO_URI"] = "mongodb://localhost:27017/myDatabase"
-mongo = PyMongo(app)
-
-
-# use decorators to link the function to a url
 @app.route('/')
 def home():
-    return render_template('welcome.html')  # render a template
+    return render_template('welcome.html')
 
-@app.route('/search')
-def serach():
-    return render_template('search.html') 
+@app.route('/', methods=['POST'])
+def my_form_post():
+    if request.method == 'POST':
+        user_input = request.form['user_input']
+        print(user_input)
+        return search(user_input)
+    return render_template('welcome.html')
 
-
+def search(user_input):
+    result_list = scratch.get_result_falsk(user_input)
+    print(result_list)
+    return render_template('search.html', user_input=user_input, result_list=result_list)
 
 # start the server with the 'run()' method
 if __name__ == '__main__':

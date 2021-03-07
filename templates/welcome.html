@@ -1,18 +1,16 @@
 <html>
   <head>
-    <title>Flask Intro</title>
+    <title>AAF's search engine</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
   </head>
   <body>
     <div class="container">
       <h1>Welcome to AAF's search engine!</h1>
-      <br>
-      <td><input type="text" name="key" placeholder="What would you like to search?" size="40" /></td>
-      <td><a href=search ><button type="submit">Search</button></a></td>
-      <!-- <p><input type="text" placeholder="Search..">
-        <a href="/">search</a>
-      </p> -->
+      <form method="POST">
+        <td><input name="user_input" type="text" placeholder="What would you like to search?" size="40" /></td>
+        <td><a href=search ><button type="submit">Search</button></a></td>
+      </form>
     </div>
   </body>
 </html>
