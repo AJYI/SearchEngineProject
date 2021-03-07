@@ -79,4 +79,4 @@ class Index:
         # PHASE 2: We write to the database/Creating the inverted index
         ################################################################
         
-        mongoDataBase.write_to_database(docs)
+        #mongoDataBase.write_to_database(docs)
