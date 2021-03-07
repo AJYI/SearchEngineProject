@@ -1,4 +1,4 @@
-from typing import Counter
+# from typing import Counter
 from tokenizer import Tokenizer
 from spimi import Spimi
 from database import Database

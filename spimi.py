@@ -8,7 +8,6 @@ import shutil
 import gc
 import math
 
-
 # We will be creating a spimi index
 class Spimi:
 

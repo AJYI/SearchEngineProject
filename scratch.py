@@ -1,7 +1,7 @@
-from typing import Match
-from urllib.parse import urlparse
-import spacy	
-spacy_nlp = spacy.load('en_core_web_sm')
+# from typing import Match
+# from urllib.parse import urlparse
+# import spacy	
+# spacy_nlp = spacy.load('en_core_web_sm')
 import numpy as np
 import math
 from collections import Counter
@@ -9,10 +9,10 @@ from tokenizer import Tokenizer
 from numpy import append, dot
 from numpy.linalg import norm
 from collections import OrderedDict
-from pprint import pprint
+# from pprint import pprint
 import pymongo
 from pymongo import MongoClient
-from bson.objectid import ObjectId
+# from bson.objectid import ObjectId
 
 # retrieve information from mongoDB
 myclient = MongoClient("mongodb://localhost:27017/")
