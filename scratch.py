@@ -6,6 +6,9 @@ import pymongo
 from pymongo import MongoClient
 import operator
 import json
+from bs4 import BeautifulSoup
+import os
+import re
 
 # retrieve information from mongoDB
 myclient = MongoClient("mongodb://localhost:27017/")
@@ -39,10 +42,17 @@ def getTopDoc(query_list):
 
     allDoc = []
     SIZE_QUERY = len(query_list)
-    
+    # 00a0c91e6be4
     # retrieve up to 100 docs (+ its tagScore) for every word in query
     for word in query_list:
-        cursor = db[word[0]].aggregate([
+        col = word[0]
+        # print("Wrod[0]:", word[0])
+
+        if word[0].isdigit():
+            col = "Num"
+            # print("Is digit changed col:", col)
+
+        cursor = db[col].aggregate([
         {"$match": {"_id": word}}, # matches with the id = word
         {"$unwind": "$doc_info"}, # it extracts the array ! gets the whole array
         {"$project":{
@@ -53,13 +63,14 @@ def getTopDoc(query_list):
         {"$sort": { "tagScore": pymongo.DESCENDING}}, 
         {"$limit" : 400 }
         ])
-        # print("~~~~~getTopDoc type cursor", type(cursor))
 
         # combine all docIDs together in one list (there are duplicates)
         cursor_list = list(cursor)
         for doc in cursor_list:
+            # print("doc:", doc)
             allDoc += [doc['doc']]
-    
+
+
     docID_Counter = Counter(allDoc) # counts number of docIDs
     docID_Counter = docID_Counter.most_common() # gets in order 
     docID_Counter = docID_Counter[:50] # gets the top 50
@@ -86,8 +97,15 @@ def getTop50Tag(query_list, docid_list):
         total_tag = 0
 
         for word in query_list:
+            col = word[0]
+            # print("Wrod[0]:", word[0])
+
+            if word[0].isdigit():
+                col = "Num"
+            # print("Is digit changed col:", col)
+
             # get tag score accordign to the docid & word
-            cursor = db[word[0]].aggregate([
+            cursor = db[col].aggregate([
                         {"$unwind": "$doc_info"},
                         {"$match": {"_id": word}},
                         {"$match": {"doc_info.originalID": docid}},
@@ -144,12 +162,17 @@ def getDocNormal(query_list, docIDs):
     for word in query_list:
         vector_list = []
         counter = 0
+        col = word[0]
+        # print("Wrod[0]:", word[0])
+
+        if word[0].isdigit():
+            col = "Num"
+            # print("Is digit changed col:", col)
 
         while counter < 20 and counter < len(docIDs):
             # we look for a matching case
-
             # getting norm
-            cursor = db[word[0]].aggregate([
+            cursor = db[col].aggregate([
                 {"$unwind": "$doc_info"},
                 {"$match": {"_id": word}},
                 {"$match": {"doc_info.originalID": docIDs[counter]}},
@@ -190,8 +213,14 @@ def getWordNormal(query_list):
     for word in query_list:
         # tfraw = tfraw_dict[word] # word's tfraw
         tfwt = 1 + math.log10(tfraw_dict[word])
-        
-        cursor = db[word[0]].aggregate([
+        col = word[0]
+        # print("Wrod[0]:", word[0])
+
+        if word[0].isdigit():
+            col = "Num"
+            # print("Is digit changed col:", col)
+
+        cursor = db[col].aggregate([
         {"$match": {"_id": word}}, # matches with the id = word
         {"$project":{
             "total": "$total"
@@ -202,7 +231,7 @@ def getWordNormal(query_list):
 
         if (len(cursor_list) == 1): # if we found a match
             # df = cursor_list[0]['total']
-            # print(word)
+            print(word)
             idf = math.log10(n/cursor_list[0]['total'])
             wt = tfwt*idf
             query_wt.append(wt)
@@ -288,6 +317,39 @@ def get_top20_url(sorted_doc_id_list):
     f.close()
 
     return docid_list
+
+
+def get_header_descrip(sorted_doc_id_list):
+    # print("sorted_doc_id_list")
+    title_paragraph = []
+
+    for docid in sorted_doc_id_list:
+        htmlFile = os.path.join('WEBPAGES_RAW/', docid)
+        if os.path.isfile(htmlFile):
+            with open(htmlFile) as fp:
+                # soup contains HTML content
+                soup = BeautifulSoup(fp, "lxml")
+
+                # get the title
+                title = soup.find('title')
+                temp_title = ""
+                if title is not None:
+                    temp_title = title.text
+                    temp_title = temp_title.strip()
+                else:
+                    temp_title = "Title None"
+                title.extract()
+
+                # get the content
+                body = soup.getText()
+                if len(body) != 0:
+                    body = re.sub(r"\s+", " ", body)
+                    if len(body) > 500:
+                        body = body[200:500]
+
+                title_paragraph.append([temp_title, body])
+
+    return title_paragraph
                 
 
 def get_result_falsk(user_input):
@@ -295,16 +357,22 @@ def get_result_falsk(user_input):
     For flask to display results
     Parameter: 
         user_input
-    Return:
+    Return: url_list
     """
     query_list = tokenObj.tokenize(user_input)
     query_vector = getWordNormal(query_list)
     docIDS = getTopDoc(query_list)
     doc_normalized = getDocNormal(query_list, docIDS)
     sorted_doc_id_list = getCosineSim(query_vector, doc_normalized, query_list, docIDS)
-    return get_top20_url(sorted_doc_id_list)
+    title_paragraph_list = get_header_descrip(sorted_doc_id_list)
+    url_list = get_top20_url(sorted_doc_id_list)
     
-    
+    for i in range(len(title_paragraph_list)):
+        # print(url_list[i])
+        url_list[i] = [url_list[i]] + title_paragraph_list[i]
+    # url_list = [url, title, body]
+
+    return url_list
 
 
 if __name__ == "__main__":
@@ -316,10 +384,11 @@ if __name__ == "__main__":
         query = input("\nEnter to search: ")
 
         if query != "quit":
+            print("Befroe token: ", query)
             query_list = tokenObj.tokenize(query)
-            # print("Query_list")
-            # print(query_list)
-
+            print("Query_list")
+            print(query_list)
+    
             # query_list  = ["computer", "science"]
             query_vector = getWordNormal(query_list)
             # print("\n\nWord vector: ")
@@ -335,5 +404,20 @@ if __name__ == "__main__":
             # print("\n\nCossim")
             sorted_doc_id_list = getCosineSim(query_vector, doc_normalized, query_list, docIDS)
 
+            title_paragraph_list = get_header_descrip(sorted_doc_id_list)
+
             # print("\n\nGet_top20_url")
-            get_top20_url(sorted_doc_id_list)
+            url_list = get_top20_url(sorted_doc_id_list)
+
+            for i in range(len(title_paragraph_list)):
+                # print(url_list[i])
+                url_list[i] = [url_list[i]] + title_paragraph_list[i]
+                # print(url_list[i])
+                
+            # print("title_paragraph_list")
+            for url in url_list:
+                print(url[0])
+                print(url[1])
+                print(url[2])
+                print()
+

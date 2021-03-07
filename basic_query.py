@@ -297,7 +297,7 @@ class Query:
         For flask to display results
         Parameter: 
             user_input
-        Return:
+        Return: url_list
         """
         tokenObj = Tokenizer()
         query_list = tokenObj.tokenize(user_input)
@@ -305,5 +305,6 @@ class Query:
         docIDS = self.getTopDoc(query_list)
         doc_normalized = self.getDocNormal(query_list, docIDS)
         sorted_doc_id_list = self.getCosineSim(query_vector, doc_normalized, query_list, docIDS)
-        
-        return self.get_top20_url(sorted_doc_id_list)
+        url_list = self.get_top20_url(sorted_doc_id_list)
+
+        return url_list
