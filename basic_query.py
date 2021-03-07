@@ -117,7 +117,7 @@ class Query:
                 "norm": "$doc_info.normalized"
             }},
             {"$sort": { "tagScore": pymongo.DESCENDING}}, 
-            {"$limit" : 400 }
+            {"$limit" : 700 }
             ])
 
             # combine all docIDs together in one list (there are duplicates)
