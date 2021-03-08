@@ -9,6 +9,7 @@ import json
 from bs4 import BeautifulSoup
 import os
 import re
+from datetime import datetime
 
 # retrieve information from mongoDB
 myclient = MongoClient("mongodb://localhost:27017/")
@@ -208,8 +209,8 @@ def getWordNormal(query_list):
     # {word : freq}
     #  !!!!!  !!!!!  !!!!!  !!!!!  !!!!!   !!!!!  !!!!!  !!!!!  !!!!! 
     n = 37497 #37497 !!!!!   !!!!!  !!!!!   !!!!!  !!!!!  ALEX RUN DB PLZ (cry)
-    #  !!!!!  !!!!!  !!!!!  !!!!!  !!!!!   !!!!!  !!!!!  !!!!!  !!!!! 
-
+    #  !!!!!  !!!!!  !!!!!  !!!!!  !!!!!   !!!!!  !!!!!  !!!!!  !!!!!   
+    
     for word in query_list:
         # tfraw = tfraw_dict[word] # word's tfraw
         tfwt = 1 + math.log10(tfraw_dict[word])
@@ -240,12 +241,16 @@ def getWordNormal(query_list):
         
     query_length = 0
     
-    for wt in query_wt:
-        query_length += wt**2
+    if len(query_wt) != 0:
+        for wt in query_wt:
+            query_length += wt**2
 
     query_length = math.sqrt(query_length)
-    
-    query_vec = np.true_divide(query_wt, query_length)
+
+    if query_length != 0:
+        query_vec = np.true_divide(query_wt, query_length)
+    else:
+        query_vec = []
 
     return query_vec
 
@@ -329,7 +334,7 @@ def get_header_descrip(sorted_doc_id_list):
             with open(htmlFile) as fp:
                 # soup contains HTML content
                 soup = BeautifulSoup(fp, "lxml")
-
+                # print("get title , ", datetime.now())
                 # get the title
                 title = soup.find('title')
                 temp_title = ""
@@ -338,19 +343,49 @@ def get_header_descrip(sorted_doc_id_list):
                     temp_title = temp_title.strip()
                 else:
                     temp_title = "Title None"
-                title.extract()
-
+                # title.extract()
+                # print("get text , ", datetime.now())
                 # get the content
+                body = " helloo "
                 body = soup.getText()
                 if len(body) != 0:
-                    body = re.sub(r"\s+", " ", body)
                     if len(body) > 500:
                         body = body[200:500]
-
+                        body = re.sub(r"\s+", " ", body)
+                # print("after text, ", datetime.now())
                 title_paragraph.append([temp_title, body])
 
     return title_paragraph
-                
+
+def tokenzie_query(query):
+    ## only leaves alpha num 
+    num_dates = []
+    temp_list = []
+    
+    query_list = query.split()
+
+    for word in query_list:
+        if tokenObj.checkNumberedDates(word):
+            num_dates.append(word)
+        elif tokenObj.checkTimeWord(word):
+            num_dates.append(word)
+        else:
+            temp_list.append(word)
+
+    query = " ".join(temp_list)
+    query = re.sub(r'[^A-Za-z0-9 ]+', '', query)
+    query_list = query.split()
+
+    ## checks the stopword
+    temp_list = []
+    for word in query_list:
+        if not tokenObj.checkStopWord(word):
+            temp_list.append(word)
+    temp_list += num_dates
+    print("temp_list", temp_list)
+    query = " ".join(temp_list)
+
+    return tokenObj.lemmatize2(query)
 
 def get_result_falsk(user_input):
     """
@@ -359,7 +394,7 @@ def get_result_falsk(user_input):
         user_input
     Return: url_list
     """
-    query_list = tokenObj.tokenize(user_input)
+    query_list = tokenzie_query(user_input)
     query_vector = getWordNormal(query_list)
     docIDS = getTopDoc(query_list)
     doc_normalized = getDocNormal(query_list, docIDS)
@@ -384,40 +419,54 @@ if __name__ == "__main__":
         query = input("\nEnter to search: ")
 
         if query != "quit":
-            print("Befroe token: ", query)
-            query_list = tokenObj.tokenize(query)
-            print("Query_list")
-            print(query_list)
-    
-            # query_list  = ["computer", "science"]
-            query_vector = getWordNormal(query_list)
-            # print("\n\nWord vector: ")
-            # print(query_vector)
 
-            docIDS = getTopDoc(query_list)
-            # print("\n\nDoc ids", docIDS)
+            url_list = get_result_falsk(query)
 
-            doc_normalized = getDocNormal(query_list, docIDS)
-            # print("\n\nNoarmlized")
-            # print_dictionary(doc_normalized)
+            # ## only leaves alpha num 
+            # query = re.sub(r'[^A-Za-z0-9 ]+', '', query)
+            # query_list = query.split()
+
+            # ## checks the stopword
+            # temp_list = []
+            # for word in query_list:
+            #     if not tokenObj.checkStopWord(word):
+            #         temp_list.append(word)
+            #     if tokenObj.checkNumberedDates(word):
+            #         temp_list.append(word)
+                    
+            # query = " ".join(temp_list)
+            # lemma_list = tokenObj.lemmatize2(query)
             
-            # print("\n\nCossim")
-            sorted_doc_id_list = getCosineSim(query_vector, doc_normalized, query_list, docIDS)
+            # according accordingly across act cat helping asks helps good bad well 1231 cs121 he!@#]s AG's 01-feb-1999
+    
+            # # query_list  = ["computer", "science"]
+            # query_vector = getWordNormal(query_list)
+            # # print("\n\nWord vector: ")
+            # # print(query_vector)
 
-            title_paragraph_list = get_header_descrip(sorted_doc_id_list)
+            # docIDS = getTopDoc(query_list)
+            # # print("\n\nDoc ids", docIDS)
 
-            # print("\n\nGet_top20_url")
-            url_list = get_top20_url(sorted_doc_id_list)
+            # doc_normalized = getDocNormal(query_list, docIDS)
+            # # print("\n\nNoarmlized")
+            # # print_dictionary(doc_normalized)
+            
+            # # print("\n\nCossim")
+            # sorted_doc_id_list = getCosineSim(query_vector, doc_normalized, query_list, docIDS)
 
-            for i in range(len(title_paragraph_list)):
-                # print(url_list[i])
-                url_list[i] = [url_list[i]] + title_paragraph_list[i]
-                # print(url_list[i])
+            # title_paragraph_list = get_header_descrip(sorted_doc_id_list)
+
+            # # print("\n\nGet_top20_url")
+            # url_list = get_top20_url(sorted_doc_id_list)
+
+            # for i in range(len(title_paragraph_list)):
+            #     # print(url_list[i])
+            #     url_list[i] = [url_list[i]] + title_paragraph_list[i]
+            #     # print(url_list[i])
                 
             # print("title_paragraph_list")
-            for url in url_list:
-                print(url[0])
-                print(url[1])
-                print(url[2])
-                print()
-
+            # for url in url_list:
+            #     print("url", url[0])
+            #     print("title", url[1])
+            #     print("body", url[2])
+            #     print()
