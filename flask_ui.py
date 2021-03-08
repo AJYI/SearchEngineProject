@@ -19,8 +19,8 @@ def my_form_post():
 
 def search(user_input):
     qObj = Query()
-    # result_list = qObj.get_result_falsk(user_input)
-    result_list = scratch.get_result_falsk(user_input)
+    result_list = qObj.get_result_falsk(user_input)
+    # result_list = scratch.get_result_falsk(user_input)
     print(result_list) # [url, title, body]
     return render_template('search.html', user_input=user_input, result_list=result_list)
 

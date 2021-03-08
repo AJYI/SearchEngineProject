@@ -31,6 +31,7 @@ def print_dictionary(cur_dict):
 """
 Gets the top documents based on the top Counter (overlapping docs)
 """
+
 def getTopDoc(query_list):
     """
     Gets the top 700 documents from each word in the query.
@@ -43,7 +44,6 @@ def getTopDoc(query_list):
 
     allDoc = []
     SIZE_QUERY = len(query_list)
-    # 00a0c91e6be4
     # retrieve up to 100 docs (+ its tagScore) for every word in query
     for word in query_list:
         col = word[0]
@@ -343,7 +343,7 @@ def get_header_descrip(sorted_doc_id_list):
                     temp_title = temp_title.strip()
                 else:
                     temp_title = "Title None"
-                # title.extract()
+                title.extract()
                 # print("get text , ", datetime.now())
                 # get the content
                 body = " helloo "
@@ -356,6 +356,7 @@ def get_header_descrip(sorted_doc_id_list):
                 title_paragraph.append([temp_title, body])
 
     return title_paragraph
+
 
 def tokenzie_query(query):
     ## only leaves alpha num 
@@ -464,9 +465,9 @@ if __name__ == "__main__":
             #     url_list[i] = [url_list[i]] + title_paragraph_list[i]
             #     # print(url_list[i])
                 
-            # print("title_paragraph_list")
-            # for url in url_list:
-            #     print("url", url[0])
-            #     print("title", url[1])
-            #     print("body", url[2])
-            #     print()
+            print("title_paragraph_list")
+            for url in url_list:
+                print("url", url[0])
+                print("title", url[1])
+                print("body", url[2])
+                print()

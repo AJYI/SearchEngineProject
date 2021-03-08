@@ -18,6 +18,26 @@ numpy
 psutil
 ```
 
+## How to use the program
+First you need to run main.py file to create the inverted index. If there is not pre-built inverted index, it will show below text in the console.
+```
+Initialization of creating the index
+```
+After building the database, there are two ways to use this program, one is to use with console and two is to use the website.
+
+### main.py:
+To run the program with the console, run the main.py. If there is already built database, it will show below text in the console. Enter a query to see the results of the top 20 urls with snippets of the pages.
+```
+Initializing the query
+Enter QUIT to exit
+Enter a query:
+```
+
+### flask_ui.py:
+To run the program with the website, run the flask_ui.py. Enter a query to see the results of the top 20 urls with snippets of the pages.
+
+### Tokenizer:
+
 ## Overall purpose of each python file
 
 ### Tokenizer:
@@ -66,9 +86,16 @@ First, the query vector is computed. Next, document vector is computed. While ge
 #### Compute cosine similarity
 Lastly, cosine similarity is computed among the query vector document vector and displays it in desending order.
 
+#### Result
+Displays the results of the top 20 urls with snippets of the pages.
+
+### flask_ui:
+Web interface that takes has an search and displays the linkes to the result, title and a brief description of each page in the results.
+
 
 ## Built With
 * [mongoDB](https://www.mongodb.com/) - The database used
+* [flask](https://flask.palletsprojects.com/en/1.1.x/) - The framework used 
 
 ## Contributing
 @AJYI
