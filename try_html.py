@@ -20,7 +20,7 @@ import os
 # retrieve information from mongoDB
 myclient = MongoClient("mongodb://localhost:27017/")
 # db = myclient['CS121_norm_100']
-db = myclient['CS121_norm_1000']
+db = myclient['CS121DB']
 
 tokenObj = Tokenizer()
 

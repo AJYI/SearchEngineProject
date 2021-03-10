@@ -40,9 +40,9 @@ class Index:
         for urlKey in urlKey_list:
 
             # FOR DEBUGGING PURPOSES
-            if (counter >= 100):
-                break
-            counter += 1
+            # if (counter >= 10000):
+            #     break
+            # counter += 1
 
             # get HTML file's path
             htmlFile = os.path.join(basepath, urlKey)
@@ -79,4 +79,4 @@ class Index:
         # PHASE 2: We write to the database/Creating the inverted index
         ################################################################
         
-        #mongoDataBase.write_to_database(docs)
+        mongoDataBase.write_to_database(docs)

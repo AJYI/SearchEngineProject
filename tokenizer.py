@@ -32,7 +32,17 @@ class Tokenizer:
         """
         # Tokenizes out the punctuations/underscore/and the other stuff
         try:
-            lemmaList = self.lemmatize2(sentence.lower())
+            # Need to check for stop words first
+            sentList = sentence.lower().split()
+            
+            # Removing stop words first
+            newSentList = []
+            for word in sentList:
+                if word not in self.stopSet:
+                    newSentList.append(word)
+            sentence = ' '.join(newSentList)
+
+            lemmaList = self.lemmatize2(sentence)
             lemmaListTokenized = self.tokenizeList(lemmaList)
         except Exception as e:
             # Used to check if there are errors that needs to be fixed
