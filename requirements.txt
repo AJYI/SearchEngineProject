@@ -1,0 +1,7 @@
+pymongo
+natsort
+beautifulsoup4
+lxml
+numpy
+psutil
+flask

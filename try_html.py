@@ -1,21 +1,11 @@
-from typing import Match
-from urllib.parse import urlparse
-import spacy	
-spacy_nlp = spacy.load('en_core_web_sm')
 import numpy as np
 import math
 from collections import Counter
 from tokenizer import Tokenizer
-from numpy import append, dot, log10, sqrt
-from numpy.linalg import norm
-from collections import OrderedDict
-from pprint import pprint
 import pymongo
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 import operator
 import json
-import os
 
 # retrieve information from mongoDB
 myclient = MongoClient("mongodb://localhost:27017/")
@@ -24,10 +14,11 @@ db = myclient['CS121DB']
 
 tokenObj = Tokenizer()
 
-"""
-Print a dictionary
-"""
+
 def print_dictionary(cur_dict):
+    """
+    Print a dictionary
+    """
     # helper function to print dictionary
     for key in cur_dict:
         print(key, cur_dict[key])
@@ -193,7 +184,7 @@ def getWordNormal(query_list):
     tfraw_dict = Counter(query_list)
     # {word : freq}
     #  !!!!!  !!!!!  !!!!!  !!!!!  !!!!!   !!!!!  !!!!!  !!!!!  !!!!! 
-    n = 1000 #37497 !!!!!   !!!!!  !!!!!   !!!!!  !!!!!  ALEX RUN DB PLZ (cry)
+    n = 37497 #37497 !!!!!   !!!!!  !!!!!   !!!!!  !!!!!  ALEX RUN DB PLZ (cry)
     #  !!!!!  !!!!!  !!!!!  !!!!!  !!!!!   !!!!!  !!!!!  !!!!!  !!!!! 
 
     for word in query_list:
@@ -211,6 +202,7 @@ def getWordNormal(query_list):
 
         if (len(cursor_list) == 1): # if we found a match
             # df = cursor_list[0]['total']
+            print(word)
             idf = math.log10(n/cursor_list[0]['total'])
             wt = tfwt*idf
             query_wt.append(wt)
@@ -232,7 +224,7 @@ def getCosineSim(query_vec, doc_normalized, query_list, doclist):
     """
     Retrieve docID's normalize from mongoDB
     Parameter: 
-        query_list
+        query_vec, doc_normalized, query_list, doclist
     """
     # for word in query_normalized:
     doc_vect = []
@@ -276,6 +268,11 @@ def getCosineSim(query_vec, doc_normalized, query_list, doclist):
     
 
 def get_top20_url(sorted_doc_id_list):
+    """
+    Retrieves the top 20 url from the json file according to the docid
+    Parameter: 
+        sorted_doc_id_list
+    """
     # Opening JSON file 
     f = open("WEBPAGES_RAW/bookkeeping.json",) 
     

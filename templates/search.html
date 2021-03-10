@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>AAF's search engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome to AAF's search engine!</h1>
+      <h2>Result for {{user_input}}</h2>
+      <div>
+        <form method="POST">
+          <div>
+          <span>
+          <form action="http://127.0.0.1:5000/">
+            <button type="submit">Back</button>
+          </form>    
+          </span>
+          <span>
+            <input name="user_input" type="text" placeholder="What would you like to search?" size="40" />
+            <a href=search><button type="submit">Search</button></a>
+          </span>
+        </div>
+        <div>
+          <u>{% for url in result_list %}
+              <div><a href="https://{{url[0]}}">{{url[1]}}</a></u></div>
+              <div><p>{{url[2]}}</p></div> 
+              {%endfor%} <br/>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
